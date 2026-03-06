@@ -1,11 +1,13 @@
 # And they say C# has boilerplate...
 
-day=$1 
+set -euo pipefail
 
-if [ -z "$day" ]; then
+if [ $# != 1 ]; then
     echo "Usage: ./create_day.sh <day_number>"
     exit 1
 fi
+
+day=$1
 
 day_name=$(printf "day%02d" "$day")
 mkdir -p "$day_name"

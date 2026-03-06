@@ -38,7 +38,7 @@ struct Vector* vector_create(const size_t element_size) {
 }
 
 void* vector_at(const struct Vector* vector, const size_t index) {
-    if (index < vector->size) {
+    if (index >= vector->size) {
         assert(false && "out of bounds access to vector");
         abort();
     }
