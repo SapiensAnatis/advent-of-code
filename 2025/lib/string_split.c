@@ -21,13 +21,14 @@ struct StringSplitIterator* string_split_create(const char* string, const char* 
         // string.
         iter->current_segment = iter->source_string;
 
-        DEBUG_PRINT("Created single-segment StringSplitIterator: '%s'", iter->current_segment.data);
+        DEBUG_PRINT("Created single-segment StringSplitIterator: '%.*s'",
+                    (int)iter->current_segment.length, iter->current_segment.data);
     } else {
         iter->current_segment.data = string;
         iter->current_segment.length = next_ptr - string;
 
-        DEBUG_PRINT("Created StringSplitIterator with initial segment: '%s'",
-                    iter->current_segment);
+        DEBUG_PRINT("Created StringSplitIterator with initial segment: '%.*s'",
+                    (int)iter->current_segment.length, iter->current_segment.data);
     }
 
     return iter;
@@ -52,19 +53,19 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
         iter->current_segment.length = bytes_left;
         iter->current_position = search_start_position;
 
-        DEBUG_PRINT("Reached last split segment in string: '%s'", iter->current_segment);
+        DEBUG_PRINT("Reached last split segment in string: '%.*s'",
+                    (int)iter->current_segment.length, iter->current_segment.data);
     } else {
         const size_t segment_size = next_ptr - search_start;
         iter->current_segment.data = search_start;
         iter->current_segment.length = segment_size;
         iter->current_position = search_start_position;
 
-        DEBUG_PRINT("Reached next split segment in string: '%s'", iter->current_segment);
+        DEBUG_PRINT("Reached next split segment in string: '%.*s'",
+                    (int)iter->current_segment.length, iter->current_segment.data);
     }
 
     return true;
 }
 
-void string_split_free(struct StringSplitIterator* iter) {
-    free(iter);
-}
+void string_split_free(struct StringSplitIterator* iter) { free(iter); }

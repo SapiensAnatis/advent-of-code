@@ -28,6 +28,7 @@ FILE* get_real_input(int day) {
 
     if (file == nullptr) {
         perror("get_real_input");
+        fprintf(stderr, "get_real_input: check the gitignored input file at %s exists", filename);
         exit(1);
     }
 

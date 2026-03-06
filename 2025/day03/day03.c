@@ -11,7 +11,7 @@
 #include <string.h>
 
 long long find_max_jolts_part1(const struct StringView* line) {
-    DEBUG_PRINT("Analysing line: '%s'", line);
+    DEBUG_PRINT("Analysing line: '%.*s'", (int)line->length, line->data);
 
     int max_digit = 0;
     size_t max_digit_position = 0;
@@ -51,7 +51,7 @@ long long find_max_jolts_part1(const struct StringView* line) {
 }
 
 long long find_max_jolts_part2(const struct StringView* line) {
-    DEBUG_PRINT("Analysing line: '%s'", line);
+    DEBUG_PRINT("Analysing line: '%.*s'", (int)line->length, line->data);
 
     constexpr size_t JOLT_LENGTH = 12;
 
