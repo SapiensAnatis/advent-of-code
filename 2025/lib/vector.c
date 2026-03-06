@@ -2,7 +2,7 @@
 #include "lib/vector.h"
 
 #include <assert.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct Vector {
@@ -12,7 +12,7 @@ struct Vector {
     size_t element_size;
 };
 
-constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
+static constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
 
 struct Vector* vector_create(size_t element_size) {
     DEBUG_PRINT("Creating new vector with element_size %d", element_size);

@@ -3,6 +3,7 @@
 #include "lib/file.h"
 #include "lib/string.h"
 #include "lib/string_split.h"
+#include "lib/string_view.h"
 
 #include <assert.h>
 #include <math.h>

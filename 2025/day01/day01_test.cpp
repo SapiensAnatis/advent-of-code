@@ -7,25 +7,25 @@ extern "C" {
 
 #include <cstdio>
 
-TEST(day01_part1, example) {
+TEST(day01part1, example) {
     FILE* example = get_example_input(1);
 
     day01_part1(example);
 }
 
-TEST(day01_part1, real) {
+TEST(day01part1, real) {
     FILE* real = get_real_input(1);
 
     day01_part1(real);
 }
 
-TEST(day01_part2, example) {
+TEST(day01part2, example) {
     FILE* example = get_example_input(1);
 
     day01_part2(example);
 }
 
-TEST(day01_part2, real) {    
+TEST(day01part2, real) {
     FILE* real = get_real_input(1);
 
     day01_part2(real);

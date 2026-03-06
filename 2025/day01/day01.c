@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void day01_part1(FILE* file) {
     char line_buffer[1024];

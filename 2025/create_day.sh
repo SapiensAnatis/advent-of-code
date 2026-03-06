@@ -57,16 +57,16 @@ extern "C" {
 
 #include "gtest/gtest.h"
 
-TEST(${day_name}_part1, example) {
+TEST(${day_name}part1, example) {
 }
 
-TEST(${day_name}_part1, real) {
+TEST(${day_name}part1, real) {
 }
 
-TEST(${day_name}_part2, example) {
+TEST(${day_name}part2, example) {
 }
 
-TEST(${day_name}_part2, real) {
+TEST(${day_name}part2, real) {
 }
 EOF
 fi
