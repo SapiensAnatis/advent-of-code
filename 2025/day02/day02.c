@@ -84,7 +84,7 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
     long invalid_id_sum = 0;
 
     do {
-        const char* current = string_view_to_string(&iter->current_segment);
+        char* current = string_view_to_string(&iter->current_segment);
         DEBUG_PRINT("Checking segment: '%s'", current);
 
         long range_start = 0;
@@ -106,7 +106,7 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
         }
 
         segment_inner = &iter_inner->current_segment;;
-        result = try_parse_long(segment_inner, &range_start);
+        result = try_parse_long(segment_inner, &range_end);
         if (!result) {
             assert(result && "failed to parse segment");
             exit(1);
@@ -121,6 +121,7 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
         }
 
         string_split_free(iter_inner);
+        free(current);
     } while (string_split_move_next(iter));
 
     printf("Invalid ID sum: %ld\n", invalid_id_sum);

@@ -133,6 +133,9 @@ void parse_input_get_answer(FILE* file, long long (*find_jolts_func)(const struc
     } while (string_split_move_next(iter));
 
     printf("Answer: %lld\n", answer);
+
+    string_split_free(iter);
+    string_free(string);
 }
 
 void day03_part1(FILE* file) { parse_input_get_answer(file, find_max_jolts_part1); }
