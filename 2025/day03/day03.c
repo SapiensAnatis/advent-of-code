@@ -1,22 +1,24 @@
 #include "day03/day03.h"
+
 #include "lib/debug.h"
 #include "lib/file.h"
 #include "lib/string.h"
 #include "lib/string_split.h"
+#include "lib/string_view.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
-long long find_max_jolts_part1(const char* line) {
+long long find_max_jolts_part1(const struct StringView* line) {
     DEBUG_PRINT("Analysing line: '%s'", line);
 
     int max_digit = 0;
     size_t max_digit_position = 0;
-    size_t line_length = strlen(line);
+    size_t line_length = line->length;
 
     for (size_t i = 0; i < line_length; i++) {
-        char ch = line[i];
+        char ch = line->data[i];
         int digit = ch - '0';
         if (digit > max_digit) {
             max_digit = digit;
@@ -29,7 +31,7 @@ long long find_max_jolts_part1(const char* line) {
     size_t second_max_digit_position = 0;
 
     for (size_t i = start_search_pos; i < line_length && i != max_digit_position; i++) {
-        char ch = line[i];
+        char ch = line->data[i];
         int digit = ch - '0';
         if (digit > second_max_digit) {
             second_max_digit = digit;
@@ -48,12 +50,12 @@ long long find_max_jolts_part1(const char* line) {
     return answer;
 }
 
-long long find_max_jolts_part2(const char* line) {
+long long find_max_jolts_part2(const struct StringView* line) {
     DEBUG_PRINT("Analysing line: '%s'", line);
 
     constexpr size_t JOLT_LENGTH = 12;
 
-    size_t line_length = strlen(line);
+    size_t line_length = line->length;
     const size_t max_skips_possible = line_length - JOLT_LENGTH;
     size_t remaining_skips = max_skips_possible;
     size_t line_position = 0;
@@ -61,7 +63,7 @@ long long find_max_jolts_part2(const char* line) {
     int jolt_digits[JOLT_LENGTH] = {0};
 
     for (size_t i = 0; i < JOLT_LENGTH; i++) {
-        char ch = line[line_position];
+        char ch = line->data[line_position];
         char max_skip_ch = ch;
         size_t skip_usage = 0;
 
@@ -71,7 +73,7 @@ long long find_max_jolts_part2(const char* line) {
                 break;
             }
 
-            char candidate_skip_ch = line[pos];
+            char candidate_skip_ch = line->data[pos];
 
             DEBUG_PRINT(
                 "Line position %zu. Evaluating skip to use %c instead of %c. Skip count: %zu",
@@ -117,7 +119,7 @@ long long find_max_jolts_part2(const char* line) {
     return jolt_acc;
 }
 
-void parse_input_get_answer(FILE* file, long long (*find_jolts_func)(const char*)) {
+void parse_input_get_answer(FILE* file, long long (*find_jolts_func)(const struct StringView*)) {
     struct String* string = read_all_text(file);
     string_trim_end(string, '\n');
 
@@ -127,8 +129,7 @@ void parse_input_get_answer(FILE* file, long long (*find_jolts_func)(const char*
 
     struct StringSplitIterator* iter = string_split_create(string_buffer, "\n");
     do {
-        const char* line = string_split_current(iter);
-        answer += find_jolts_func(line);
+        answer += find_jolts_func(&iter->current_segment);
     } while (string_split_move_next(iter));
 
     printf("Answer: %lld\n", answer);

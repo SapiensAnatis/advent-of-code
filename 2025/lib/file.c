@@ -1,4 +1,5 @@
-#include "file.h"
+#include "lib/file.h"
+
 #include "lib/string.h"
 
 #include <assert.h>
@@ -39,9 +40,10 @@ struct String* read_all_text(FILE* file) {
     struct String* result = string_create("");
     size_t bytes_read = 0;
 
-    while ((bytes_read = fread(internal_buffer, sizeof(char), sizeof(internal_buffer), file)),
+    while ((bytes_read = fread(internal_buffer, sizeof(char), sizeof(internal_buffer) - 1, file)),
            bytes_read != 0) {
         assert(ferror(file) == 0 && "ferror detected");
+        assert(bytes_read < sizeof(internal_buffer));
         internal_buffer[bytes_read] = '\0';
         string_append(result, internal_buffer);
     }

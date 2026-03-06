@@ -3,7 +3,9 @@
 
 #include <stddef.h>
 
-struct String;
+struct String {
+    struct Vector* char_buffer;
+};
 
 struct String* string_create(const char* value);
 

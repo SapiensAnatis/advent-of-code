@@ -84,7 +84,7 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
     long invalid_id_sum = 0;
 
     do {
-        const char* current = string_split_current(iter);
+        const char* current = string_view_to_string(&iter->current_segment);
         DEBUG_PRINT("Checking segment: '%s'", current);
 
         long range_start = 0;
@@ -92,8 +92,12 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
 
         struct StringSplitIterator* iter_inner = string_split_create(current, "-");
 
-        const char* segment_inner = string_split_current(iter_inner);
-        range_start = strtol(segment_inner, nullptr, 10);
+        const struct StringView* segment_inner = &iter_inner->current_segment;
+        bool result = try_parse_long(segment_inner, &range_start);
+        if (!result) {
+            assert(result && "failed to parse segment");
+            exit(1);
+        }
 
         bool has_next = string_split_move_next(iter_inner);
         if (!has_next) {
@@ -101,8 +105,12 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
             exit(1);
         }
 
-        segment_inner = string_split_current(iter_inner);
-        range_end = strtol(segment_inner, nullptr, 10);
+        segment_inner = &iter_inner->current_segment;;
+        result = try_parse_long(segment_inner, &range_start);
+        if (!result) {
+            assert(result && "failed to parse segment");
+            exit(1);
+        }
 
         for (long i = range_start; i <= range_end; i++) {
             if (id_checker(i)) {

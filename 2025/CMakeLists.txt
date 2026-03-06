@@ -17,9 +17,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_CLANG_TIDY "clang-tidy;-config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy;-warnings-as-errors=*")
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-gnu-zero-variadic-macro-arguments")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-gnu-zero-variadic-macro-arguments -fsanitize=address")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g")
+add_link_options("-fsanitize=address")
 
+# C++ flags for GTest
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy;-warnings-as-errors=*")

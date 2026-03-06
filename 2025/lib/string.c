@@ -1,14 +1,13 @@
-#include "lib/debug.h"
 #include "lib/string.h"
+
+#include "lib/debug.h"
 #include "lib/vector.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct String {
-    struct Vector* char_buffer;
-};
+
 
 static constexpr char NULL_TERMINATOR = '\0';
 
