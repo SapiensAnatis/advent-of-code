@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.30)
 project(aoc2025)
 
 enable_testing()
@@ -24,24 +23,24 @@ add_link_options("-fsanitize=address")
 # C++ flags for GTest
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy;-warnings-as-errors=*")
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og -g")
 
 include_directories("${CMAKE_CURRENT_LIST_DIR}")
 
-add_executable(aoc)
+add_executable(aoc2025)
 
-target_link_libraries(aoc gtest_main)
+target_link_libraries(aoc2025 gtest_main)
 
 add_subdirectory("lib")
 
-target_link_libraries(aoc aoc_lib)
-
-add_subdirectory("day01")
+target_link_libraries(aoc2025 aoc_lib)
 
 include(GoogleTest)
-gtest_discover_tests(aoc)
+gtest_discover_tests(aoc2025)
 
+add_subdirectory("day01")
 add_subdirectory("day02")
 add_subdirectory("day03")

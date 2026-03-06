@@ -4,7 +4,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/input.txt")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/input.txt" "${CMAKE_CURRENT_BINARY_DIR}/input.txt" COPYONLY)
 endif ()
 
-target_sources(aoc PRIVATE
+target_sources(aoc2024 PRIVATE
         day14.cpp
         day14.h
         day14_test.cpp

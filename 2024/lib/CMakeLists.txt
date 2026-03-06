@@ -1,4 +1,4 @@
-target_sources(aoc PRIVATE
+target_sources(aoc2024 PRIVATE
         aoc.h
         aoc.cpp
         tree.hpp
