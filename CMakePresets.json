@@ -11,11 +11,20 @@
       "displayName": "Default Config",
       "description": "Default build",
       "generator": "Unix Makefiles",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "DEBUG_PRINT_ENABLED": "$env{DEBUG_PRINT_ENABLED}"
       }
+    },
+    {
+      "name": "debug print",
+      "displayName": "Debug print enabled",
+      "binaryDir": "${sourceDir}/build/debug-print",
+      "environment": {
+        "DEBUG_PRINT_ENABLED": "ON"
+      },
+      "inherits": "default"
     }
   ],
   "buildPresets": [
