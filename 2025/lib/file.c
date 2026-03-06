@@ -15,7 +15,7 @@ FILE* get_example_input(int day) {
 
     if (file == nullptr) {
         perror("get_example_input");
-        exit(1);
+        abort();
     }
 
     return file;
@@ -29,7 +29,7 @@ FILE* get_real_input(int day) {
     if (file == nullptr) {
         perror("get_real_input");
         fprintf(stderr, "get_real_input: check the gitignored input file at %s exists", filename);
-        exit(1);
+        abort();
     }
 
     return file;
@@ -63,7 +63,10 @@ bool read_line(FILE* file, char* buffer, size_t buffer_size) {
         const char* fgets_result = fgets(internal_buffer, sizeof(internal_buffer), file);
         if (fgets_result == nullptr) {
             // Read error or EOF
-            assert(ferror(file) == 0 && "fgets error reading file");
+            if (ferror(file)) {
+                assert(false && "fgets error reading file");
+                abort();
+            }
             return false;
         }
 

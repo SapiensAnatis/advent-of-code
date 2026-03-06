@@ -18,10 +18,16 @@ struct Vector* vector_create(const size_t element_size) {
     DEBUG_PRINT("Creating new vector with element_size %ld", element_size);
 
     struct Vector* result = malloc(sizeof(struct Vector));
-    assert(result != nullptr && "failed to allocate vector");
+    if (result == nullptr) {
+        assert(false && "failed to allocate struct Vector");
+        abort();
+    }
 
     void* data = malloc(element_size * VECTOR_INITIAL_CAPACITY);
-    assert(data != nullptr && "failed to allocate vector data");
+    if (result == nullptr) {
+        assert(false && "failed to allocate vector data");
+        abort();
+    }
 
     result->data = data;
     result->size = 0;
@@ -32,7 +38,10 @@ struct Vector* vector_create(const size_t element_size) {
 }
 
 void* vector_at(const struct Vector* vector, const size_t index) {
-    assert(index < vector->size && "out of bounds accesss to vector");
+    if (index < vector->size) {
+        assert(false && "out of bounds access to vector");
+        abort();
+    }
 
     void* element_ptr = ((char*)vector->data) + (index * vector->element_size);
 
@@ -59,7 +68,10 @@ void vector_append_range(struct Vector* vector, const void* elements, const size
                     new_capacity);
 
         void* new_data = realloc(vector->data, new_capacity * vector->element_size);
-        assert(new_data != nullptr && "failed to allocate expanded vector data");
+        if (new_data == nullptr) {
+            assert(false && "failed to allocate expanded vector data");
+            abort();
+        }
 
         vector->capacity = new_capacity;
         vector->data = new_data;
@@ -76,7 +88,10 @@ size_t vector_size(const struct Vector* vector) { return vector->size; }
 void* vector_data(struct Vector* vector) { return vector->data; }
 
 void vector_pop(struct Vector* vector) {
-    assert(vector->size > 0 && "attempted to pop from empty vector");
+    if (vector->size == 0) {
+        assert(false && "attempted to pop from empty vector");
+        abort();
+    }
     vector->size -= 1;
 }
 

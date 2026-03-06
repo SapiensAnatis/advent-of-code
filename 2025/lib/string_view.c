@@ -2,6 +2,7 @@
 
 #include "debug.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -11,6 +12,10 @@ char* string_view_to_string(const struct StringView* view) {
     // String views are not guaranteed to be null terminated, so conversion to a C string requires
     // making a copy
     char* buffer = malloc(view->length + 1);
+    if (buffer == nullptr) {
+        assert(false && "failed to allocate string");
+        abort();
+    }
     memcpy(buffer, view->data, view->length);
     buffer[view->length] = '\0';
 

@@ -96,21 +96,21 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
         const struct StringView* segment_inner = &iter_inner->current_segment;
         bool result = try_parse_long(segment_inner, &range_start);
         if (!result) {
-            assert(result && "failed to parse segment");
-            exit(1);
+            assert(false && "failed to parse segment");
+            abort();
         }
 
         bool has_next = string_split_move_next(iter_inner);
         if (!has_next) {
             assert(false && "no next segment");
-            exit(1);
+            abort();
         }
 
-        segment_inner = &iter_inner->current_segment;;
+        segment_inner = &iter_inner->current_segment;
         result = try_parse_long(segment_inner, &range_end);
         if (!result) {
-            assert(result && "failed to parse segment");
-            exit(1);
+            assert(false && "failed to parse segment");
+            abort();
         }
 
         for (long i = range_start; i <= range_end; i++) {
