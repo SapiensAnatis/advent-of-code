@@ -11,7 +11,7 @@
 
 static constexpr char NULL_TERMINATOR = '\0';
 
-static bool string_is_null_terminated(const struct String* string) {
+[[maybe_unused]] static bool string_is_null_terminated(const struct String* string) {
     char* last_char = vector_at(string->char_buffer, vector_size(string->char_buffer) - 1);
     return *last_char == '\0';
 }

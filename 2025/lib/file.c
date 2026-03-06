@@ -54,7 +54,7 @@ struct String* read_all_text(FILE* file) {
 bool read_line(FILE* file, char* buffer, size_t buffer_size) {
     char* newline_ptr = nullptr;
     char* write_position = buffer;
-    size_t remaining_size = buffer_size;
+    [[maybe_unused]] size_t remaining_size = buffer_size;
 
     char internal_buffer[128];
 
