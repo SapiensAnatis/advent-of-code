@@ -18,7 +18,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_CLANG_TIDY "clang-tidy;-config-file=${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy;-warnings-as-errors=*")
 set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror -Wno-gnu-zero-variadic-macro-arguments -fsanitize=address")
 set(CMAKE_C_FLAGS_DEBUG "-Og -g")
-add_link_options("-fsanitize=address")
 
 # C++ flags for GTest
 set(CMAKE_CXX_STANDARD 23)
@@ -33,6 +32,7 @@ include_directories("${CMAKE_CURRENT_LIST_DIR}")
 add_executable(aoc2025)
 
 target_link_libraries(aoc2025 gtest_main)
+target_link_libraries(aoc2025 hardening)
 
 add_subdirectory("lib")
 
