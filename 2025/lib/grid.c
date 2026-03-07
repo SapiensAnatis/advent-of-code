@@ -10,13 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static ptrdiff_t grid_calc_index(const struct Grid* grid, const ptrdiff_t x, const ptrdiff_t y) {
+static grid_coord grid_calc_index(const struct Grid* grid, const grid_coord x, const grid_coord y) {
     if (x < 0 || y < 0 || x >= grid->size_x || y >= grid->size_y) {
         return -1;
     }
 
     // +1: grid buffer has newlines
-    const ptrdiff_t idx = (y * (grid->size_x + 1)) + x;
+    const grid_coord idx = (y * (grid->size_x + 1)) + x;
 
     return idx;
 }
@@ -31,7 +31,7 @@ struct Grid* grid_create(struct String* data) {
 
     grid->data = data;
     const struct StringView data_view = string_to_string_view(data);
-    ptrdiff_t cursor = string_view_find_char(&data_view, '\n', 0);
+    grid_coord cursor = string_view_find_char(&data_view, '\n', 0);
 
     if (cursor == -1) {
         DEBUG_PRINT("Failed to create grid: no newlines found");
@@ -44,11 +44,11 @@ struct Grid* grid_create(struct String* data) {
 
     grid->size_x = cursor;
 
-    ptrdiff_t size_y = 0;
+    grid_coord size_y = 0;
 
     do {
         size_y += 1;
-        const ptrdiff_t new_start = cursor + 1;
+        const grid_coord new_start = cursor + 1;
         cursor = string_view_find_char(&data_view, '\n', new_start);
 
         if (cursor != -1 && cursor - new_start != grid->size_x) {
@@ -71,8 +71,8 @@ struct Grid* grid_copy(const struct Grid* source) { return grid_create(string_co
  * @param y The y co-ordinate of the square to get.
  * @return A character at that grid square, or \0 if the co-ordinates were out of range.
  */
-char grid_get_square(const struct Grid* grid, const ptrdiff_t x, const ptrdiff_t y) {
-    const ptrdiff_t idx = grid_calc_index(grid, x, y);
+char grid_get_square(const struct Grid* grid, const grid_coord x, const grid_coord y) {
+    const grid_coord idx = grid_calc_index(grid, x, y);
     if (idx == -1) {
         return 0;
     }
@@ -80,8 +80,8 @@ char grid_get_square(const struct Grid* grid, const ptrdiff_t x, const ptrdiff_t
     return string_data(grid->data)[idx];
 }
 
-bool grid_set_square(struct Grid* grid, const ptrdiff_t x, const ptrdiff_t y, const char value) {
-    const ptrdiff_t idx = grid_calc_index(grid, x, y);
+bool grid_set_square(struct Grid* grid, const grid_coord x, const grid_coord y, const char value) {
+    const grid_coord idx = grid_calc_index(grid, x, y);
     if (idx == -1) {
         return false;
     }
@@ -95,8 +95,8 @@ void grid_print(const struct Grid* grid) {
     fflush(stdout);
 }
 
-struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, const ptrdiff_t x,
-                                                     const ptrdiff_t y) {
+struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, const grid_coord x,
+                                                     const grid_coord y) {
     struct GridAdjacentSquares result = {0};
 
     const struct GridAdjacentCoordinates coords = grid_get_adjacent_coords(grid, x, y);
@@ -111,12 +111,12 @@ struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, co
     return result;
 }
 
-struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, const ptrdiff_t x,
-                                                        const ptrdiff_t y) {
+struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, const grid_coord x,
+                                                        const grid_coord y) {
     struct GridAdjacentCoordinates result = {0};
 
-    for (ptrdiff_t x_search = x - 1; x_search <= x + 1; x_search++) {
-        for (ptrdiff_t y_search = y - 1; y_search <= y + 1; y_search++) {
+    for (grid_coord x_search = x - 1; x_search <= x + 1; x_search++) {
+        for (grid_coord y_search = y - 1; y_search <= y + 1; y_search++) {
             if (x_search == x && y_search == y) {
                 continue;
             }

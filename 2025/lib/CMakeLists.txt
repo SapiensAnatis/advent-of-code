@@ -1,12 +1,12 @@
-add_library(aoc_lib)
+add_library(aoc2025_lib)
 
 option(DEBUG_PRINT_ENABLED "Enable debug print" 0)
 
 if (${DEBUG_PRINT_ENABLED})
-    target_compile_definitions(aoc_lib PUBLIC DEBUG_PRINT_ENABLED)
+    target_compile_definitions(aoc2025_lib PUBLIC DEBUG_PRINT_ENABLED)
 endif ()
 
-target_sources(aoc_lib PRIVATE
+target_sources(aoc2025_lib PRIVATE
         debug.h debug.c
         file.h file.c
         grid.h grid.c
@@ -15,4 +15,5 @@ target_sources(aoc_lib PRIVATE
         string_view.h string_view.c
         vector.h vector.c
 )
-target_include_directories(aoc_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR}/..)
+
+target_include_directories(aoc2025_lib PUBLIC ${CMAKE_CURRENT_LIST_DIR}/..)

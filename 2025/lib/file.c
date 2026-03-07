@@ -76,7 +76,10 @@ bool read_line(FILE* file, char* buffer, size_t buffer_size) {
             *newline_ptr = '\0'; // Don't include newline in returned string
         }
 
-        assert(read_size < remaining_size && "buffer too small to contain line");
+        if (read_size > remaining_size) {
+            assert(false && "buffer too small to contain line");
+            abort();
+        }
 
         memcpy(write_position, internal_buffer, read_size);
         write_position += read_size;

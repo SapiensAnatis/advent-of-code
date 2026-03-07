@@ -2,8 +2,8 @@
 // Created by jay on 07/03/2026.
 //
 
-#ifndef AOC_LIB_GRID_H
-#define AOC_LIB_GRID_H
+#ifndef AOC2025_LIB_GRID_H
+#define AOC2025_LIB_GRID_H
 
 #include "lib/string_view.h"
 
@@ -43,9 +43,9 @@ void grid_print(const struct Grid* grid);
 struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, grid_coord x,
                                                      grid_coord y);
 
-struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, ptrdiff_t x,
-                                                        ptrdiff_t y);
+struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, grid_coord x,
+                                                        grid_coord y);
 
 void grid_free(struct Grid* grid);
 
-#endif // AOC_LIB_GRID_H
+#endif // AOC2025_LIB_GRID_H

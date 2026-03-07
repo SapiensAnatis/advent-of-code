@@ -95,7 +95,7 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
         struct StringSplitIterator* iter_inner = string_split_create(current, "-");
 
         const struct StringView* segment_inner = &iter_inner->current_segment;
-        bool result = try_parse_int64(segment_inner, &range_start);
+        bool result = string_view_try_parse_int64(segment_inner, &range_start);
         if (!result) {
             assert(false && "failed to parse segment");
             abort();
@@ -108,7 +108,7 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
         }
 
         segment_inner = &iter_inner->current_segment;
-        result = try_parse_int64(segment_inner, &range_end);
+        result = string_view_try_parse_int64(segment_inner, &range_end);
         if (!result) {
             assert(false && "failed to parse segment");
             abort();

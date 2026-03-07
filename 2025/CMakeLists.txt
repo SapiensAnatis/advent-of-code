@@ -36,7 +36,7 @@ target_link_libraries(aoc2025 hardening)
 
 add_subdirectory("lib")
 
-target_link_libraries(aoc2025 aoc_lib)
+target_link_libraries(aoc2025 aoc2025_lib)
 
 include(GoogleTest)
 gtest_discover_tests(aoc2025)

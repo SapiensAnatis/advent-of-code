@@ -126,6 +126,7 @@ int32_t day04_part2(FILE* file) {
     } while (vector_size(coords_to_edit) > 0);
 
     grid_free(grid);
+    vector_free(coords_to_edit);
 
     return removed_paper_count;
 }

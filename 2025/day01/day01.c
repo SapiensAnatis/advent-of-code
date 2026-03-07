@@ -76,7 +76,7 @@ int32_t day01_part2(FILE* file) {
         }
 
         DEBUG_PRINT("New dial position: %ld", dial_position);
-        DEBUG_PRINT("Zero crossings: %ld", local_dial_zero_counter);
+        DEBUG_PRINT("Zero crossings: %d", local_dial_zero_counter);
 
         dial_zero_counter += local_dial_zero_counter;
     }
