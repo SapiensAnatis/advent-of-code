@@ -27,6 +27,12 @@ struct String* string_create(const char* value) {
     return result;
 }
 
+struct String* string_copy(const struct String* value) {
+    // Bypass const; we aren't going to mutate and will just immediately copy
+    const char* data = string_data((struct String*)value);
+    return string_create(data);
+}
+
 void string_append(struct String* string, const char* value) {
     assert(string_is_null_terminated(string));
     vector_pop(string->char_buffer); // Remove existing null terminator
@@ -34,7 +40,7 @@ void string_append(struct String* string, const char* value) {
     vector_append(string->char_buffer, &NULL_TERMINATOR);
 }
 
-void string_trim_end(struct String* string, char target) {
+void string_trim_end(struct String* string, const char target) {
     // -2: last index (size - 1) is \0, last char is at (size - 2)
     assert(string_is_null_terminated(string));
     char* current_ending = vector_at(string->char_buffer, vector_size(string->char_buffer) - 2);
@@ -51,11 +57,8 @@ void string_trim_end(struct String* string, char target) {
     }
 }
 
-struct StringView string_to_string_view(const struct String* string) {
-    // We'll allow bypassing const here, as string_view stores a const char* so callers cannot
-    // mutate a const struct String* via its view.
-    const char* data = vector_data(string->char_buffer);
-    const struct StringView result = {.data = data, .length = string_length(string)};
+struct StringView string_to_string_view(struct String* string) {
+    const struct StringView result = {.data = string_data(string), .length = string_length(string)};
     return result;
 }
 

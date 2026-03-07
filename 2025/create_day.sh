@@ -57,6 +57,8 @@ extern "C" {
 #include "lib/file.h"
 }
 
+#include <cstdio>
+
 #include "gtest/gtest.h"
 
 TEST(${day_name}part1, example) {

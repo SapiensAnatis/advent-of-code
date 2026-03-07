@@ -11,6 +11,8 @@ struct String {
 
 struct String* string_create(const char* value);
 
+struct String* string_copy(const struct String* value);
+
 void string_append(struct String* string, const char* value);
 
 char* string_data(struct String* string);
@@ -19,7 +21,7 @@ size_t string_length(const struct String* string);
 
 void string_trim_end(struct String* string, char target);
 
-struct StringView string_to_string_view(const struct String* string);
+struct StringView string_to_string_view(struct String* string);
 
 void string_free(struct String* string);
 
