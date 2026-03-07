@@ -10,6 +10,7 @@ target_sources(aoc2025_lib PRIVATE
         debug.h debug.c
         file.h file.c
         grid.h grid.c
+        range.h range.c
         string.h string.c
         string_split.h string_split.c
         string_view.h string_view.c
