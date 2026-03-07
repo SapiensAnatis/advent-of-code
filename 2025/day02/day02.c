@@ -81,33 +81,33 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
 
     char* file_contents_ptr = string_data(file_contents);
 
-    struct StringSplitIterator* iter = string_split_create(file_contents_ptr, ",");
+    struct StringSplitIterator iter = string_split_create(file_contents_ptr, ",");
 
     int64_t invalid_id_sum = 0;
 
     do {
-        char* current = string_view_to_string(&iter->current_segment);
+        char* current = string_view_to_string(&iter.current_segment);
         DEBUG_PRINT("Checking segment: '%s'", current);
 
         int64_t range_start = 0;
         int64_t range_end = 0;
 
-        struct StringSplitIterator* iter_inner = string_split_create(current, "-");
+        struct StringSplitIterator iter_inner = string_split_create(current, "-");
 
-        const struct StringView* segment_inner = &iter_inner->current_segment;
+        const struct StringView* segment_inner = &iter_inner.current_segment;
         bool result = string_view_try_parse_int64(segment_inner, &range_start);
         if (!result) {
             assert(false && "failed to parse segment");
             abort();
         }
 
-        bool has_next = string_split_move_next(iter_inner);
+        bool has_next = string_split_move_next(&iter_inner);
         if (!has_next) {
             assert(false && "no next segment");
             abort();
         }
 
-        segment_inner = &iter_inner->current_segment;
+        segment_inner = &iter_inner.current_segment;
         result = string_view_try_parse_int64(segment_inner, &range_end);
         if (!result) {
             assert(false && "failed to parse segment");
@@ -121,11 +121,9 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
             }
         }
 
-        string_split_free(iter_inner);
         free(current);
-    } while (string_split_move_next(iter));
+    } while (string_split_move_next(&iter));
 
-    string_split_free(iter);
     string_free(file_contents);
 
     return invalid_id_sum;

@@ -6,29 +6,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct StringSplitIterator* string_split_create(const char* string, const char* separator) {
-    struct StringSplitIterator* iter = malloc(sizeof(struct StringSplitIterator));
-    assert(iter != nullptr && "struct allocation failed");
+struct StringSplitIterator string_split_create(const char* string, const char* separator) {
+    // NOLINTNEXTLINE(modernize-use-nullptr): clang-tidy bug
+    struct StringSplitIterator iter = {0};
 
-    iter->source_string.data = string;
-    iter->source_string.length = strlen(string);
-    iter->separator = separator;
-    iter->current_position = 0;
+    iter.source_string.data = string;
+    iter.source_string.length = strlen(string);
+    iter.separator = separator;
+    iter.current_position = 0;
 
-    const char* next_ptr = strstr(string, iter->separator);
+    const char* next_ptr = strstr(string, iter.separator);
     if (next_ptr == nullptr) {
         // String does not contain separator. Yield a single segment which is just the entire
         // string.
-        iter->current_segment = iter->source_string;
+        iter.current_segment = iter.source_string;
 
         DEBUG_PRINT("Created single-segment StringSplitIterator: '%.*s'",
-                    (int)iter->current_segment.length, iter->current_segment.data);
+                    (int)iter.current_segment.length, iter.current_segment.data);
     } else {
-        iter->current_segment.data = string;
-        iter->current_segment.length = next_ptr - string;
+        iter.current_segment.data = string;
+        iter.current_segment.length = next_ptr - string;
 
         DEBUG_PRINT("Created StringSplitIterator with initial segment: '%.*s'",
-                    (int)iter->current_segment.length, iter->current_segment.data);
+                    (int)iter.current_segment.length, iter.current_segment.data);
     }
 
     return iter;
@@ -67,5 +67,3 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
 
     return true;
 }
-
-void string_split_free(struct StringSplitIterator* iter) { free(iter); }

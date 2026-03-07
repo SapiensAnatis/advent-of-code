@@ -25,28 +25,26 @@ static struct Vector* parse_ranges(FILE* file) {
             break;
         }
 
-        struct StringSplitIterator* split = string_split_create(line_buf, "-");
+        struct StringSplitIterator split = string_split_create(line_buf, "-");
 
         struct Range range = {0};
 
-        if (!string_view_try_parse_int64(&split->current_segment, &range.start)) {
+        if (!string_view_try_parse_int64(&split.current_segment, &range.start)) {
             assert(false && "failed to parse range start");
             abort();
         }
 
-        if (!string_split_move_next(split)) {
+        if (!string_split_move_next(&split)) {
             assert(false && "failed to get split end");
             abort();
         }
 
-        if (!string_view_try_parse_int64(&split->current_segment, &range.end)) {
+        if (!string_view_try_parse_int64(&split.current_segment, &range.end)) {
             assert(false && "failed to parse range end");
             abort();
         }
 
         vector_append(range_vector, &range);
-
-        string_split_free(split);
     }
 
     DEBUG_PRINT("Created %ld ranges", vector_size(range_vector));

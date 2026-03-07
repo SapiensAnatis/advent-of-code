@@ -128,12 +128,11 @@ int64_t parse_input_get_answer(FILE* file, int64_t (*find_jolts_func)(const stru
 
     int64_t answer = 0;
 
-    struct StringSplitIterator* iter = string_split_create(string_buffer, "\n");
+    struct StringSplitIterator iter = string_split_create(string_buffer, "\n");
     do {
-        answer += find_jolts_func(&iter->current_segment);
-    } while (string_split_move_next(iter));
+        answer += find_jolts_func(&iter.current_segment);
+    } while (string_split_move_next(&iter));
 
-    string_split_free(iter);
     string_free(string);
 
     return answer;
