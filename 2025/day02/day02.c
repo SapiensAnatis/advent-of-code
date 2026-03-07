@@ -117,7 +117,6 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
         for (int64_t i = range_start; i <= range_end; i++) {
             if (id_checker(i)) {
                 DEBUG_PRINT("Found invalid ID: %ld", i);
-                printf("Found invalid ID: %ld\n", i);
                 invalid_id_sum += i;
             }
         }

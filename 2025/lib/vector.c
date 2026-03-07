@@ -87,12 +87,19 @@ size_t vector_size(const struct Vector* vector) { return vector->size; }
 
 void* vector_data(struct Vector* vector) { return vector->data; }
 
-void vector_pop(struct Vector* vector) {
+/**
+ * Remove an element from the end of the vector.
+ * @param vector The vector to remove from.
+ * @return The removed element.
+ */
+void* vector_pop(struct Vector* vector) {
     if (vector->size == 0) {
         assert(false && "attempted to pop from empty vector");
         abort();
     }
+    void* element = vector_at(vector, vector->size - 1);
     vector->size -= 1;
+    return element;
 }
 
 void vector_free(struct Vector* vector) {

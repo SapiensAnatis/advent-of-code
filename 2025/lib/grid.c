@@ -99,16 +99,32 @@ struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, co
                                                      const ptrdiff_t y) {
     struct GridAdjacentSquares result = {0};
 
+    const struct GridAdjacentCoordinates coords = grid_get_adjacent_coords(grid, x, y);
+
+    result.count = coords.count;
+
+    for (size_t i = 0; i < coords.count; i++) {
+        const struct GridCoordinate coord = coords.coords[i];
+        result.squares[i] = grid_get_square(grid, coord.x, coord.y);
+    }
+
+    return result;
+}
+
+struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, const ptrdiff_t x,
+                                                        const ptrdiff_t y) {
+    struct GridAdjacentCoordinates result = {0};
+
     for (ptrdiff_t x_search = x - 1; x_search <= x + 1; x_search++) {
         for (ptrdiff_t y_search = y - 1; y_search <= y + 1; y_search++) {
             if (x_search == x && y_search == y) {
                 continue;
             }
 
-            const char square = grid_get_square(grid, x_search, y_search);
-            if (square != 0 && square != '\n') {
+            const bool in_bounds = grid_calc_index(grid, x_search, y_search) != -1;
+            if (in_bounds) {
                 assert(result.count < 8);
-                result.squares[result.count] = square;
+                result.coords[result.count] = (struct GridCoordinate){.x = x_search, .y = y_search};
                 result.count += 1;
             }
         }

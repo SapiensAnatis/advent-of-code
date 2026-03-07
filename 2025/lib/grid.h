@@ -7,10 +7,17 @@
 
 #include "lib/string_view.h"
 
+typedef ptrdiff_t grid_coord;
+
 struct Grid {
     struct String* data; // Not StringView: helpful to be able to edit squares
-    ptrdiff_t size_x;
-    ptrdiff_t size_y;
+    grid_coord size_x;
+    grid_coord size_y;
+};
+
+struct GridCoordinate {
+    grid_coord x;
+    grid_coord y;
 };
 
 struct GridAdjacentSquares {
@@ -18,18 +25,26 @@ struct GridAdjacentSquares {
     char squares[8];
 };
 
+struct GridAdjacentCoordinates {
+    uint8_t count;
+    struct GridCoordinate coords[8];
+};
+
 struct Grid* grid_create(struct String* data);
 
 struct Grid* grid_copy(const struct Grid* source);
 
-char grid_get_square(const struct Grid* grid, ptrdiff_t x, ptrdiff_t y);
+char grid_get_square(const struct Grid* grid, grid_coord x, grid_coord y);
 
-bool grid_set_square(struct Grid* grid, ptrdiff_t x, ptrdiff_t y, char value);
+bool grid_set_square(struct Grid* grid, grid_coord x, grid_coord y, char value);
 
 void grid_print(const struct Grid* grid);
 
-struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, ptrdiff_t x,
-                                                     ptrdiff_t y);
+struct GridAdjacentSquares grid_get_adjacent_squares(const struct Grid* grid, grid_coord x,
+                                                     grid_coord y);
+
+struct GridAdjacentCoordinates grid_get_adjacent_coords(const struct Grid* grid, ptrdiff_t x,
+                                                        ptrdiff_t y);
 
 void grid_free(struct Grid* grid);
 

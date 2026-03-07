@@ -18,7 +18,7 @@ size_t vector_size(const struct Vector* vector);
 
 void* vector_data(struct Vector* vector);
 
-void vector_pop(struct Vector* vector);
+void* vector_pop(struct Vector* vector);
 
 void vector_free(struct Vector* vector);
 

@@ -24,6 +24,18 @@ TEST(day04part1, real) {
     printf("answer = %d\n", answer);
 }
 
-TEST(day04part2, example) {}
+TEST(day04part2, example) {
+    FILE* example = get_example_input(4);
 
-TEST(day04part2, real) {}
+    const int32_t answer = day04_part2(example);
+    printf("answer = %d\n", answer);
+
+    ASSERT_EQ(43, answer);
+}
+
+TEST(day04part2, real) {
+    FILE* real = get_real_input(4);
+
+    const int32_t answer = day04_part2(real);
+    printf("answer = %d\n", answer);
+}
