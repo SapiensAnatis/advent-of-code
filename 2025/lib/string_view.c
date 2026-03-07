@@ -57,9 +57,9 @@ ptrdiff_t string_view_find_char(const struct StringView* haystack, const char ne
  * @param out_result Pointer to result. Will not be written to if this returns false.
  * @return A boolean indicating whether the parsing succeeded or not.
  */
-bool try_parse_int(const struct StringView* view, int32_t* out_result) {
+bool try_parse_int32(const struct StringView* view, int32_t* out_result) {
     long tmp_result = 0;
-    const bool result = try_parse_long(view, &tmp_result);
+    const bool result = try_parse_int64(view, &tmp_result);
     if (result && tmp_result <= INT_MAX && tmp_result >= INT_MIN) {
         *out_result = (int)tmp_result;
         return true;
@@ -74,7 +74,7 @@ bool try_parse_int(const struct StringView* view, int32_t* out_result) {
  * @param out_result Pointer to result. Will not be written to if this returns false.
  * @return A boolean indicating whether the parsing succeeded or not.
  */
-bool try_parse_long(const struct StringView* view, int64_t* out_result) {
+bool try_parse_int64(const struct StringView* view, int64_t* out_result) {
     long result = 0;
 
     for (size_t i = 0; i < view->length; i++) {

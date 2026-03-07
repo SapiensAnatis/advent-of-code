@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void day04_part1(FILE* file) {
+int32_t day04_part1(FILE* file) {
     struct Grid* grid = grid_create(read_all_text(file));
 
     if (grid == nullptr) {
@@ -18,7 +18,7 @@ void day04_part1(FILE* file) {
         abort();
     }
 
-    int accessible_squares_count = 0;
+    int32_t accessible_squares_count = 0;
 
     for (ptrdiff_t x = 0; x < grid->size_x; x++) {
         for (ptrdiff_t y = 0; y < grid->size_y; y++) {
@@ -49,7 +49,7 @@ void day04_part1(FILE* file) {
         }
     }
 
-    printf("Answer: %d\n", accessible_squares_count);
-
     grid_free(grid);
+
+    return accessible_squares_count;
 }

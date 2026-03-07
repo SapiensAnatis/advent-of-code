@@ -3,6 +3,7 @@ extern "C" {
 #include "lib/file.h"
 }
 
+#include <cstdint>
 #include <cstdio>
 
 #include "gtest/gtest.h"
@@ -10,13 +11,17 @@ extern "C" {
 TEST(day04part1, example) {
     FILE* example = get_example_input(4);
 
-    day04_part1(example);
+    const int32_t answer = day04_part1(example);
+    printf("answer = %d\n", answer);
+
+    ASSERT_EQ(13, answer);
 }
 
 TEST(day04part1, real) {
-    FILE* example = get_real_input(4);
+    FILE* real = get_real_input(4);
 
-    day04_part1(example);
+    const int32_t answer = day04_part1(real);
+    printf("answer = %d\n", answer);
 }
 
 TEST(day04part2, example) {}

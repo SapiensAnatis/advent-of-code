@@ -7,10 +7,11 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-bool is_invalid_id_part1(long id) {
+bool is_invalid_id_part1(int64_t id) {
     int digit_count = (int)ceil(log10((double)id));
     if (digit_count % 2 != 0) {
         // Numbers with an odd digit count cannot be invalid
@@ -21,7 +22,7 @@ bool is_invalid_id_part1(long id) {
 
     // For a number like 1010, divide it by 10^2 (100)
     int half_digit_count = digit_count / 2;
-    long divisor = (int)trunc(pow(10.0, half_digit_count));
+    int64_t divisor = (int)trunc(pow(10.0, half_digit_count));
     // An invalid ID, when divided by the right number, will have an equal quotient and modulus
     ldiv_t div_result = ldiv(id, divisor);
 
@@ -31,7 +32,7 @@ bool is_invalid_id_part1(long id) {
     return div_result.quot == div_result.rem;
 }
 
-bool is_invalid_id_part2(long id) {
+bool is_invalid_id_part2(int64_t id) {
     int digit_count = (int)ceil(log10((double)id));
 
     if (digit_count <= 1) {
@@ -41,12 +42,12 @@ bool is_invalid_id_part2(long id) {
     // For a number like 1010, if it is not an invalid number by 10^2 (100), then it cannot be one
     // by 1000 as 1000 encompasses 3 digits which is more than half.
     int half_digit_count = digit_count / 2;
-    long max_divisor = (int)trunc(pow(10.0, half_digit_count));
+    int64_t max_divisor = (int)trunc(pow(10.0, half_digit_count));
 
-    for (long current_divisor = 10; current_divisor <= max_divisor; current_divisor *= 10) {
+    for (int64_t current_divisor = 10; current_divisor <= max_divisor; current_divisor *= 10) {
         ldiv_t initial_div_result = ldiv(id, current_divisor);
-        long expected_rem = initial_div_result.rem;
-        long current_id = initial_div_result.quot;
+        int64_t expected_rem = initial_div_result.rem;
+        int64_t current_id = initial_div_result.quot;
         bool all_rems_match_expected = true;
 
         while (current_id > 0) {
@@ -74,7 +75,7 @@ bool is_invalid_id_part2(long id) {
     return false;
 }
 
-void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
+int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
     struct String* file_contents = read_all_text(file);
     string_trim_end(file_contents, '\n');
 
@@ -82,19 +83,19 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
 
     struct StringSplitIterator* iter = string_split_create(file_contents_ptr, ",");
 
-    long invalid_id_sum = 0;
+    int64_t invalid_id_sum = 0;
 
     do {
         char* current = string_view_to_string(&iter->current_segment);
         DEBUG_PRINT("Checking segment: '%s'", current);
 
-        long range_start = 0;
-        long range_end = 0;
+        int64_t range_start = 0;
+        int64_t range_end = 0;
 
         struct StringSplitIterator* iter_inner = string_split_create(current, "-");
 
         const struct StringView* segment_inner = &iter_inner->current_segment;
-        bool result = try_parse_long(segment_inner, &range_start);
+        bool result = try_parse_int64(segment_inner, &range_start);
         if (!result) {
             assert(false && "failed to parse segment");
             abort();
@@ -107,13 +108,13 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
         }
 
         segment_inner = &iter_inner->current_segment;
-        result = try_parse_long(segment_inner, &range_end);
+        result = try_parse_int64(segment_inner, &range_end);
         if (!result) {
             assert(false && "failed to parse segment");
             abort();
         }
 
-        for (long i = range_start; i <= range_end; i++) {
+        for (int64_t i = range_start; i <= range_end; i++) {
             if (id_checker(i)) {
                 DEBUG_PRINT("Found invalid ID: %ld", i);
                 printf("Found invalid ID: %ld\n", i);
@@ -125,12 +126,12 @@ void parse_and_scan(FILE* file, bool (*id_checker)(long)) {
         free(current);
     } while (string_split_move_next(iter));
 
-    printf("Invalid ID sum: %ld\n", invalid_id_sum);
-
     string_split_free(iter);
     string_free(file_contents);
+
+    return invalid_id_sum;
 }
 
-void day02_part1(FILE* file) { parse_and_scan(file, is_invalid_id_part1); }
+int64_t day02_part1(FILE* file) { return parse_and_scan(file, is_invalid_id_part1); }
 
-void day02_part2(FILE* file) { parse_and_scan(file, is_invalid_id_part2); }
+int64_t day02_part2(FILE* file) { return parse_and_scan(file, is_invalid_id_part2); }

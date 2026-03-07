@@ -45,6 +45,8 @@ if [ ! -f "$h_file_name" ]; then
 #ifndef ${include_guard}
 #define ${include_guard}
 
+#include <stdint.h>
+
 #endif // ${include_guard}
 EOF
 fi
@@ -58,6 +60,7 @@ extern "C" {
 }
 
 #include <cstdio>
+#include <cstdint>
 
 #include "gtest/gtest.h"
 

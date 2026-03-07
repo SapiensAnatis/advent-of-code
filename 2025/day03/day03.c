@@ -7,10 +7,11 @@
 #include "lib/string_view.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-long long find_max_jolts_part1(const struct StringView* line) {
+int64_t find_max_jolts_part1(const struct StringView* line) {
     DEBUG_PRINT("Analysing line: '%.*s'", (int)line->length, line->data);
 
     int max_digit = 0;
@@ -50,7 +51,7 @@ long long find_max_jolts_part1(const struct StringView* line) {
     return answer;
 }
 
-long long find_max_jolts_part2(const struct StringView* line) {
+int64_t find_max_jolts_part2(const struct StringView* line) {
     DEBUG_PRINT("Analysing line: '%.*s'", (int)line->length, line->data);
 
     constexpr size_t JOLT_LENGTH = 12;
@@ -119,25 +120,25 @@ long long find_max_jolts_part2(const struct StringView* line) {
     return jolt_acc;
 }
 
-void parse_input_get_answer(FILE* file, long long (*find_jolts_func)(const struct StringView*)) {
+int64_t parse_input_get_answer(FILE* file, int64_t (*find_jolts_func)(const struct StringView*)) {
     struct String* string = read_all_text(file);
     string_trim_end(string, '\n');
 
     const char* string_buffer = string_data(string);
 
-    long long answer = 0;
+    int64_t answer = 0;
 
     struct StringSplitIterator* iter = string_split_create(string_buffer, "\n");
     do {
         answer += find_jolts_func(&iter->current_segment);
     } while (string_split_move_next(iter));
 
-    printf("Answer: %lld\n", answer);
-
     string_split_free(iter);
     string_free(string);
+
+    return answer;
 }
 
-void day03_part1(FILE* file) { parse_input_get_answer(file, find_max_jolts_part1); }
+int64_t day03_part1(FILE* file) { return parse_input_get_answer(file, find_max_jolts_part1); }
 
-void day03_part2(FILE* file) { parse_input_get_answer(file, find_max_jolts_part2); }
+int64_t day03_part2(FILE* file) { return parse_input_get_answer(file, find_max_jolts_part2); }
