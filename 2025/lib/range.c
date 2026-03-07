@@ -1,5 +1,8 @@
 #include "lib/range.h"
 
+#include "lib/debug.h"
+
+#include <inttypes.h>
 #include <stdint.h>
 
 /**
@@ -35,4 +38,8 @@ bool range_try_merge(const struct Range* first, const struct Range* second,
     }
 
     return false;
+}
+
+void range_debug_print([[maybe_unused]] const struct Range* range) {
+    DEBUG_PRINT("%" PRId64 "-%" PRId64 "\n", range->start, range->end);
 }

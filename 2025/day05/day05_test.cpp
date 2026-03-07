@@ -3,6 +3,7 @@ extern "C" {
 #include "lib/file.h"
 }
 
+#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 
@@ -24,6 +25,18 @@ TEST(day05part1, real) {
     printf("answer = %d\n", answer);
 }
 
-TEST(day05part2, example) {}
+TEST(day05part2, example) {
+    FILE* example = get_example_input(5);
 
-TEST(day05part2, real) {}
+    const int64_t answer = day05_part2(example);
+    printf("answer = %" PRId64 "\n", answer);
+
+    ASSERT_EQ(14, answer);
+}
+
+TEST(day05part2, real) {
+    FILE* real = get_real_input(5);
+
+    const int64_t answer = day05_part2(real);
+    printf("answer = %" PRId64 "\n", answer);
+}

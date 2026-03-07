@@ -24,7 +24,7 @@ struct Vector* vector_create(const size_t element_size) {
     }
 
     void* data = malloc(element_size * VECTOR_INITIAL_CAPACITY);
-    if (result == nullptr) {
+    if (data == nullptr) {
         assert(false && "failed to allocate vector data");
         abort();
     }
@@ -102,8 +102,28 @@ void* vector_pop(struct Vector* vector) {
     return element;
 }
 
+void vector_remove_at(struct Vector* vector, const size_t index) {
+    if (index >= vector->size) {
+        assert(false && "out of bounds access to vector");
+        abort();
+    }
+
+    const size_t num_elements_to_move = vector->size - index - 1;
+
+    if (num_elements_to_move > 0) {
+        memmove(vector_at(vector, index), vector_at(vector, index + 1),
+                num_elements_to_move * vector->element_size);
+    }
+
+    vector->size -= 1;
+}
+
 void vector_free(struct Vector* vector) {
     DEBUG_PRINT("Destroying vector at %p", (void*)vector);
+
+    if (vector == nullptr) {
+        return;
+    }
 
     free(vector->data);
     free(vector);

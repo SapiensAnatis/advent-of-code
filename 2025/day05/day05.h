@@ -6,6 +6,6 @@
 
 int32_t day05_part1(FILE* file);
 
-int32_t day05_part2(FILE* file);
+int64_t day05_part2(FILE* file);
 
 #endif // AOC2025_DAY05_H

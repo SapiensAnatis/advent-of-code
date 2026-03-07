@@ -17,6 +17,9 @@ struct Range {
 
 bool range_test(const struct Range* range, int64_t value);
 
-bool range_try_merge(const struct Range* first, const struct Range* second, struct Range* out_merged);
+bool range_try_merge(const struct Range* first, const struct Range* second,
+                     struct Range* out_merged);
+
+void range_debug_print(const struct Range* range);
 
 #endif // AOC2025_LIB_RANGE_H

@@ -20,6 +20,8 @@ void* vector_data(struct Vector* vector);
 
 void* vector_pop(struct Vector* vector);
 
+void vector_remove_at(struct Vector* vector, size_t index);
+
 void vector_free(struct Vector* vector);
 
 #endif // AOC2025_LIB_VECTOR_H
