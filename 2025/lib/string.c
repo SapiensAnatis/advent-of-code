@@ -1,13 +1,12 @@
 #include "lib/string.h"
 
 #include "lib/debug.h"
+#include "lib/string_view.h"
 #include "lib/vector.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-
-
 
 static constexpr char NULL_TERMINATOR = '\0';
 
@@ -50,6 +49,14 @@ void string_trim_end(struct String* string, char target) {
         vector_append(string->char_buffer,
                       &NULL_TERMINATOR); // re-insert null terminator where trimmed char was
     }
+}
+
+struct StringView string_to_string_view(const struct String* string) {
+    // We'll allow bypassing const here, as string_view stores a const char* so callers cannot
+    // mutate a const struct String* via its view.
+    const char* data = vector_data(string->char_buffer);
+    const struct StringView result = {.data = data, .length = string_length(string)};
+    return result;
 }
 
 char* string_data(struct String* string) { return vector_data(string->char_buffer); }

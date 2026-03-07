@@ -1,0 +1,4 @@
+#ifndef AOC2025_DAY04_H
+#define AOC2025_DAY04_H
+
+#endif // AOC2025_DAY04_H

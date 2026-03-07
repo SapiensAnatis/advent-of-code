@@ -6,6 +6,7 @@
 #define AOC2025_STRING_VIEW_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 struct StringView {
     const char* data;
@@ -14,8 +15,10 @@ struct StringView {
 
 char* string_view_to_string(const struct StringView* view);
 
-bool try_parse_int(const struct StringView* view, int* out_result);
+ptrdiff_t string_view_find_char(const struct StringView* haystack, char needle, ptrdiff_t start);
 
-bool try_parse_long(const struct StringView* view, long* out_result) ;
+bool try_parse_int(const struct StringView* view, int32_t* out_result);
+
+bool try_parse_long(const struct StringView* view, int64_t* out_result);
 
 #endif // AOC2025_STRING_VIEW_H
