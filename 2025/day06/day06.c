@@ -21,6 +21,7 @@ struct MathProblem {
 
 static void free_math_problem(void* problem) {
     vector_free(((struct MathProblem*)problem)->operands);
+    vector_free(((struct MathProblem*)problem)->operand_pos);
 }
 
 static bool is_operator(const char c) { return c == '+' || c == '*'; }
@@ -218,6 +219,7 @@ int64_t day06_part2(FILE* file) {
 
         struct MathProblem transformed_problem = {
             .operands = vector_create(sizeof(int32_t), VECTOR_DEFAULT_DELETER),
+            .operand_pos = nullptr, // Don't care
             .operator_ch = problem->operator_ch,
         };
 
@@ -239,9 +241,9 @@ int64_t day06_part2(FILE* file) {
         //
         // then we must extract starting from the left to get 4, 431, 623
         //
-        // One idea would be to store the position each operand was found in, and then check
-        // all positions in a number; if they're all the same then the numbers were left aligned,
-        // but if they differ the numbers were right aligned
+        // To do this we store the position each operand was found in, and then check the first and
+        // last position in a number; if they're the same then the numbers were left aligned, but if
+        // they differ the numbers were right aligned
 
         const int32_t first_pos = *(int32_t*)vector_front(problem->operand_pos);
         const int32_t last_pos = *(int32_t*)vector_back(problem->operand_pos);
@@ -254,7 +256,6 @@ int64_t day06_part2(FILE* file) {
             for (size_t j = 0; j < vector_size(problem->operands); j++) {
                 const int32_t* operand = vector_at(problem->operands, j);
 
-                // BROKEN: see above, we need to check spacing for this
                 const uint8_t digit = is_right_aligned ? extract_digit_right(*operand, digit_idx)
                                                        : extract_digit_left(*operand, digit_idx);
 
