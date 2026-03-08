@@ -24,7 +24,7 @@ static constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
  * @return A pointer to the created vector.
  */
 struct Vector* vector_create(const size_t element_size, void (*deleter)(void*)) {
-    DEBUG_PRINT("Creating new vector with element_size %ld", element_size);
+    // DEBUG_PRINT("Creating new vector with element_size %ld", element_size);
 
     struct Vector* result = malloc(sizeof(struct Vector));
     if (result == nullptr) {
@@ -63,8 +63,8 @@ void vector_append(struct Vector* vector, const void* element) {
 }
 
 void vector_append_range(struct Vector* vector, const void* elements, const size_t elements_size) {
-    DEBUG_PRINT("Appending elements to vector at %p: %p -> +%ld", (void*)vector, elements,
-                elements_size);
+    // DEBUG_PRINT("Appending elements to vector at %p: %p -> +%ld", (void*)vector, elements,
+    //             elements_size);
 
     size_t required_capacity = vector->size + elements_size;
 

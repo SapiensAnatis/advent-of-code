@@ -1,6 +1,6 @@
 #include "lib/string_split.h"
 
-#include "lib/debug.h"
+// #include "lib/debug.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -32,22 +32,23 @@ struct StringSplitIterator string_split_create(const char* string, const char* s
         // string.
         iter.current_segment = iter.source_string;
 
-        DEBUG_PRINT("Created single-segment StringSplitIterator: '%.*s'",
-                    (int)iter.current_segment.length, iter.current_segment.data);
+        // DEBUG_PRINT("Created single-segment StringSplitIterator: '%.*s'",
+        //             (int)iter.current_segment.length, iter.current_segment.data);
     } else {
         iter.current_segment.data = string;
         iter.current_segment.length = next_ptr - string;
 
-        DEBUG_PRINT("Created StringSplitIterator with initial segment: '%.*s'",
-                    (int)iter.current_segment.length, iter.current_segment.data);
+        // DEBUG_PRINT("Created StringSplitIterator with initial segment: '%.*s'",
+        //             (int)iter.current_segment.length, iter.current_segment.data);
     }
 
     if (iter.options & STRING_SPLIT_REMOVE_EMPTY_ENTRIES) {
         while (iter.current_segment.length == 0) {
             if (!string_split_move_next(&iter)) {
-                DEBUG_PRINT(
-                    "Using initial segment '%.*s' instead due to STRING_SPLIT_REMOVE_EMPTY_ENTRIES",
-                    (int)iter.current_segment.length, iter.current_segment.data);
+                // DEBUG_PRINT(
+                //     "Using initial segment '%.*s' instead due to
+                //     STRING_SPLIT_REMOVE_EMPTY_ENTRIES", (int)iter.current_segment.length,
+                //     iter.current_segment.data);
                 break;
             }
         }
@@ -61,7 +62,7 @@ static bool string_split_move_next_impl(struct StringSplitIterator* iter) {
         iter->current_position + iter->current_segment.length + strlen(iter->separator);
 
     if (search_start_position > iter->source_string.length) {
-        DEBUG_PRINT("No further segments in StringSplitIterator");
+        // DEBUG_PRINT("No further segments in StringSplitIterator");
         return false;
     }
 
@@ -75,16 +76,16 @@ static bool string_split_move_next_impl(struct StringSplitIterator* iter) {
         iter->current_segment.length = bytes_left;
         iter->current_position = search_start_position;
 
-        DEBUG_PRINT("Reached last split segment in string: '%.*s'",
-                    (int)iter->current_segment.length, iter->current_segment.data);
+        // DEBUG_PRINT("Reached last split segment in string: '%.*s'",
+        //             (int)iter->current_segment.length, iter->current_segment.data);
     } else {
         const size_t segment_size = next_ptr - search_start;
         iter->current_segment.data = search_start;
         iter->current_segment.length = segment_size;
         iter->current_position = search_start_position;
 
-        DEBUG_PRINT("Reached next split segment in string: '%.*s'",
-                    (int)iter->current_segment.length, iter->current_segment.data);
+        // DEBUG_PRINT("Reached next split segment in string: '%.*s'",
+        //             (int)iter->current_segment.length, iter->current_segment.data);
     }
 
     return true;
@@ -94,8 +95,8 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
     if (iter->options & STRING_SPLIT_REMOVE_EMPTY_ENTRIES) {
         while (string_split_move_next_impl(iter)) {
             if (iter->current_segment.length > 0) {
-                DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
-                            iter->current_segment.data);
+                // DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
+                //             iter->current_segment.data);
                 return true;
             }
         }
@@ -103,7 +104,7 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
         return false;
     }
 
-    DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
-                iter->current_segment.data);
+    // DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
+    //             iter->current_segment.data);
     return string_split_move_next_impl(iter);
 }

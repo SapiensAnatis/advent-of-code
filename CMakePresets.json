@@ -25,6 +25,16 @@
         "DEBUG_PRINT_ENABLED": "ON"
       },
       "inherits": "default"
+    },
+    {
+      "name": "release",
+      "displayName": "Release Config",
+      "description": "Release build",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [

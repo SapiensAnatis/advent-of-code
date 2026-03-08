@@ -25,6 +25,13 @@ TEST(day06part1, real) {
     printf("answer = %" PRIi64 "\n", answer);
 }
 
-TEST(day06part2, example) {}
+TEST(day06part2, example) {
+    FILE* example = get_example_input(6);
+
+    const int64_t answer = day06_part2(example);
+    printf("answer = %" PRIi64 "\n", answer);
+
+    ASSERT_EQ(3263827, answer);
+}
 
 TEST(day06part2, real) {}
