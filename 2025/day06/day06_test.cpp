@@ -34,4 +34,9 @@ TEST(day06part2, example) {
     ASSERT_EQ(3263827, answer);
 }
 
-TEST(day06part2, real) {}
+TEST(day06part2, real) {
+    FILE* real = get_real_input(6);
+
+    const int64_t answer = day06_part2(real);
+    printf("answer = %" PRIi64 "\n", answer);
+}

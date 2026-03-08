@@ -14,7 +14,8 @@
 #include <stdlib.h>
 
 struct MathProblem {
-    struct Vector* operands; // vector<int32_t>
+    struct Vector* operands;    // vector<int32_t>
+    struct Vector* operand_pos; // vector<size_t>
     char operator_ch;
 };
 
@@ -64,7 +65,10 @@ static struct Vector* parse_math_problems(FILE* file) {
 
     do {
         struct MathProblem problem = {
-            .operands = vector_create(sizeof(int32_t), VECTOR_DEFAULT_DELETER), .operator_ch = '+'};
+            .operands = vector_create(sizeof(int32_t), VECTOR_DEFAULT_DELETER),
+            .operand_pos = vector_create(sizeof(size_t), VECTOR_DEFAULT_DELETER),
+            .operator_ch = '+',
+        };
 
         int32_t first_operand = 0;
         if (!string_view_try_parse_int32(&first_line_split.current_segment, &first_operand)) {
@@ -73,6 +77,7 @@ static struct Vector* parse_math_problems(FILE* file) {
         }
 
         vector_append(problem.operands, &first_operand);
+        vector_append(problem.operand_pos, &first_line_split.current_position);
         vector_append(problems, &problem);
     } while (string_split_move_next(&first_line_split));
 
@@ -96,6 +101,7 @@ static struct Vector* parse_math_problems(FILE* file) {
 
             struct MathProblem* problem = vector_at(problems, problem_idx);
             vector_append(problem->operands, &operand);
+            vector_append(problem->operand_pos, &split_iterator.current_position);
 
             problem_idx += 1;
         } while (string_split_move_next(&split_iterator));
@@ -176,9 +182,10 @@ static uint8_t count_digits(const int32_t number) {
     return digits;
 }
 
+static constexpr int32_t POW_10[] = {1,      10,      100,      1000,      10000,
+                                     100000, 1000000, 10000000, 100000000, 1000000000};
+
 static uint8_t extract_digit_left(const int32_t number, const uint8_t digit_index) {
-    static constexpr int32_t pow10[] = {1,      10,      100,      1000,      10000,
-                                        100000, 1000000, 10000000, 100000000, 1000000000};
 
     const uint8_t digits = count_digits(number);
     const int16_t idx = (int16_t)(digits - digit_index - 1);
@@ -186,18 +193,16 @@ static uint8_t extract_digit_left(const int32_t number, const uint8_t digit_inde
         return 0;
     }
 
-    assert(idx < (int16_t)sizeof(pow10));
-    const int32_t num_shifted = number / pow10[idx];
+    assert(idx < (int16_t)(sizeof(POW_10) / sizeof(int32_t)));
+    const int32_t num_shifted = number / POW_10[idx];
     const int32_t unit_place = num_shifted % 10;
 
     return unit_place;
 }
 
 static uint8_t extract_digit_right(const int32_t number, const uint8_t digit_index) {
-    static constexpr int32_t pow10[] = {1,      10,      100,      1000,      10000,
-                                        100000, 1000000, 10000000, 100000000, 1000000000};
-    assert(digit_index < (int16_t)sizeof(pow10));
-    const int32_t num_shifted = number / pow10[digit_index];
+    assert(digit_index < (uint8_t)(sizeof(POW_10) / sizeof(int32_t)));
+    const int32_t num_shifted = number / POW_10[digit_index];
     const int32_t unit_place = num_shifted % 10;
 
     return unit_place;
@@ -238,11 +243,10 @@ int64_t day06_part2(FILE* file) {
         // all positions in a number; if they're all the same then the numbers were left aligned,
         // but if they differ the numbers were right aligned
 
-        const int32_t first_orig_operand = *(int32_t*)vector_at(problem->operands, 0);
-        const int32_t last_orig_operand =
-            *(int32_t*)vector_at(problem->operands, vector_size(problem->operands) - 1);
+        const int32_t first_pos = *(int32_t*)vector_front(problem->operand_pos);
+        const int32_t last_pos = *(int32_t*)vector_back(problem->operand_pos);
 
-        const bool is_right_extract = first_orig_operand > last_orig_operand;
+        const bool is_right_aligned = first_pos != last_pos;
 
         for (unsigned digit_idx = 0;; digit_idx++) {
             int32_t new_operand = 0;
@@ -251,7 +255,7 @@ int64_t day06_part2(FILE* file) {
                 const int32_t* operand = vector_at(problem->operands, j);
 
                 // BROKEN: see above, we need to check spacing for this
-                const uint8_t digit = is_right_extract ? extract_digit_right(*operand, digit_idx)
+                const uint8_t digit = is_right_aligned ? extract_digit_right(*operand, digit_idx)
                                                        : extract_digit_left(*operand, digit_idx);
 
                 // DEBUG_PRINT("Extracted %s digit %d at index %d from number %d",

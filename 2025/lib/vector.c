@@ -116,6 +116,10 @@ void* vector_pop(struct Vector* vector) {
     return element;
 }
 
+void* vector_front(struct Vector* vector) { return vector_at(vector, 0); }
+
+void* vector_back(struct Vector* vector) { return vector_at(vector, vector->size - 1); }
+
 void vector_remove_at(struct Vector* vector, const size_t index) {
     if (index >= vector->size) {
         assert(false && "out of bounds access to vector");
