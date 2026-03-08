@@ -67,7 +67,8 @@ int32_t day04_part2(FILE* file) {
         abort();
     }
 
-    struct Vector* coords_to_edit = vector_create(sizeof(struct GridCoordinate));
+    struct Vector* coords_to_edit =
+        vector_create(sizeof(struct GridCoordinate), VECTOR_DEFAULT_DELETER);
 
     // Find initial squares that can be removed
     for (grid_coord x = 0; x < grid->size_x; x++) {

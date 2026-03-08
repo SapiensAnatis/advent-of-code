@@ -6,7 +6,10 @@
 
 struct Vector;
 
-struct Vector* vector_create(size_t element_size);
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+static constexpr void (*const VECTOR_DEFAULT_DELETER)(void*) = nullptr;
+
+struct Vector* vector_create(size_t element_size, void (*deleter)(void*));
 
 void* vector_at(const struct Vector* vector, size_t index);
 

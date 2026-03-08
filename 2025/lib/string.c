@@ -19,7 +19,7 @@ struct String* string_create(const char* value) {
     struct String* result = malloc(sizeof(struct String));
     assert(result != nullptr && "failed to allocate string");
 
-    result->char_buffer = vector_create(sizeof(char));
+    result->char_buffer = vector_create(sizeof(char), VECTOR_DEFAULT_DELETER);
 
     vector_append_range(result->char_buffer, value, strlen(value));
     vector_append(result->char_buffer, &NULL_TERMINATOR);

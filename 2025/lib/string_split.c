@@ -42,6 +42,17 @@ struct StringSplitIterator string_split_create(const char* string, const char* s
                     (int)iter.current_segment.length, iter.current_segment.data);
     }
 
+    if (iter.options & STRING_SPLIT_REMOVE_EMPTY_ENTRIES) {
+        while (iter.current_segment.length == 0) {
+            if (!string_split_move_next(&iter)) {
+                DEBUG_PRINT(
+                    "Using initial segment '%.*s' instead due to STRING_SPLIT_REMOVE_EMPTY_ENTRIES",
+                    (int)iter.current_segment.length, iter.current_segment.data);
+                break;
+            }
+        }
+    }
+
     return iter;
 }
 
@@ -83,6 +94,8 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
     if (iter->options & STRING_SPLIT_REMOVE_EMPTY_ENTRIES) {
         while (string_split_move_next_impl(iter)) {
             if (iter->current_segment.length > 0) {
+                DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
+                            iter->current_segment.data);
                 return true;
             }
         }
@@ -90,5 +103,7 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
         return false;
     }
 
+    DEBUG_PRINT("Yielding segment '%.*s'", (int)iter->current_segment.length,
+                iter->current_segment.data);
     return string_split_move_next_impl(iter);
 }

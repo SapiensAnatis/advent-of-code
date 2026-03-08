@@ -10,11 +10,20 @@ struct Vector {
     size_t size;
     size_t capacity;
     size_t element_size;
+    void (*deleter)(void*);
 };
 
 static constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
 
-struct Vector* vector_create(const size_t element_size) {
+/**
+ * Creates a new vector.
+ * @param element_size The size of each individual element.
+ * @param deleter Custom deleter to call when removing elements or destroying the vector. Can be
+ * nullptr if the vector element type does not need special cleanup (i.e. does not own pointers).
+ * See VECTOR_DEFAULT_DELETER which is equal to nullptr.
+ * @return A pointer to the created vector.
+ */
+struct Vector* vector_create(const size_t element_size, void (*deleter)(void*)) {
     DEBUG_PRINT("Creating new vector with element_size %ld", element_size);
 
     struct Vector* result = malloc(sizeof(struct Vector));
@@ -33,6 +42,7 @@ struct Vector* vector_create(const size_t element_size) {
     result->size = 0;
     result->capacity = VECTOR_INITIAL_CAPACITY;
     result->element_size = element_size;
+    result->deleter = deleter;
 
     return result;
 }
@@ -90,7 +100,11 @@ void* vector_data(struct Vector* vector) { return vector->data; }
 /**
  * Remove an element from the end of the vector.
  * @param vector The vector to remove from.
- * @return The removed element.
+ * @return A reference to the removed element.
+ * @note The reference to the removed element is within the vector's contiguous memory. Therefore,
+ * the returned reference is no longer valid if vector_append, vector_remove_at, or vector_free is
+ * called after vector_pop. If the vector has a custom deleter, the caller is responsible for
+ * freeing the returned reference with the correct deleter.
  */
 void* vector_pop(struct Vector* vector) {
     if (vector->size == 0) {
@@ -110,6 +124,10 @@ void vector_remove_at(struct Vector* vector, const size_t index) {
 
     const size_t num_elements_to_move = vector->size - index - 1;
 
+    if (vector->deleter) {
+        (*vector->deleter)(vector_at(vector, index));
+    }
+
     if (num_elements_to_move > 0) {
         memmove(vector_at(vector, index), vector_at(vector, index + 1),
                 num_elements_to_move * vector->element_size);
@@ -123,6 +141,12 @@ void vector_free(struct Vector* vector) {
 
     if (vector == nullptr) {
         return;
+    }
+
+    if (vector->deleter) {
+        for (size_t i = 0; i < vector->size; i++) {
+            (*vector->deleter)(vector_at(vector, i));
+        }
     }
 
     free(vector->data);

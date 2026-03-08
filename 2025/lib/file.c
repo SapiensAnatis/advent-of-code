@@ -52,10 +52,10 @@ struct String* read_all_text(FILE* file) {
     return result;
 }
 
-bool read_line(FILE* file, char* buffer, size_t buffer_size) {
+bool read_line(FILE* file, char* buffer, const size_t buffer_size) {
     char* newline_ptr = nullptr;
     char* write_position = buffer;
-    [[maybe_unused]] size_t remaining_size = buffer_size;
+    size_t remaining_size = buffer_size;
 
     char internal_buffer[128];
 
@@ -71,7 +71,7 @@ bool read_line(FILE* file, char* buffer, size_t buffer_size) {
         }
 
         newline_ptr = strstr(internal_buffer, "\n");
-        size_t read_size = strlen(internal_buffer);
+        const size_t read_size = strlen(internal_buffer);
         if (newline_ptr) {
             *newline_ptr = '\0'; // Don't include newline in returned string
         }
