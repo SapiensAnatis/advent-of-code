@@ -25,7 +25,7 @@ static struct Vector* parse_ranges(FILE* file) {
             break;
         }
 
-        struct StringSplitIterator split = string_split_create(line_buf, "-");
+        struct StringSplitIterator split = string_split_create(line_buf, "-", STRING_SPLIT_DEFAULT);
 
         struct Range range = {0};
 

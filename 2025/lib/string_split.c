@@ -3,10 +3,20 @@
 #include "lib/debug.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct StringSplitIterator string_split_create(const char* string, const char* separator) {
+/**
+ * Create a new string split iterator.
+ * @param string The string to split.
+ * @param separator The separator to use. MUST outlive the returned StringSplitIterator.
+ * @param options Bitmask of options for string splitting behaviour. See StringSplitOptions.
+ * @return An iterator that can be used to view components of the string, split by the provided
+ * separator.
+ */
+struct StringSplitIterator string_split_create(const char* string, const char* separator,
+                                               const uint8_t options) {
     // NOLINTNEXTLINE(modernize-use-nullptr): clang-tidy bug
     struct StringSplitIterator iter = {0};
 
@@ -14,6 +24,7 @@ struct StringSplitIterator string_split_create(const char* string, const char* s
     iter.source_string.length = strlen(string);
     iter.separator = separator;
     iter.current_position = 0;
+    iter.options = options;
 
     const char* next_ptr = strstr(string, iter.separator);
     if (next_ptr == nullptr) {
@@ -34,8 +45,8 @@ struct StringSplitIterator string_split_create(const char* string, const char* s
     return iter;
 }
 
-bool string_split_move_next(struct StringSplitIterator* iter) {
-    size_t search_start_position =
+static bool string_split_move_next_impl(struct StringSplitIterator* iter) {
+    const size_t search_start_position =
         iter->current_position + iter->current_segment.length + strlen(iter->separator);
 
     if (search_start_position > iter->source_string.length) {
@@ -66,4 +77,18 @@ bool string_split_move_next(struct StringSplitIterator* iter) {
     }
 
     return true;
+}
+
+bool string_split_move_next(struct StringSplitIterator* iter) {
+    if (iter->options & STRING_SPLIT_REMOVE_EMPTY_ENTRIES) {
+        while (string_split_move_next_impl(iter)) {
+            if (iter->current_segment.length > 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    return string_split_move_next_impl(iter);
 }

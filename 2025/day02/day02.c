@@ -81,7 +81,8 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
 
     char* file_contents_ptr = string_data(file_contents);
 
-    struct StringSplitIterator iter = string_split_create(file_contents_ptr, ",");
+    struct StringSplitIterator iter =
+        string_split_create(file_contents_ptr, ",", STRING_SPLIT_DEFAULT);
 
     int64_t invalid_id_sum = 0;
 
@@ -92,7 +93,8 @@ int64_t parse_and_scan(FILE* file, bool (*id_checker)(int64_t)) {
         int64_t range_start = 0;
         int64_t range_end = 0;
 
-        struct StringSplitIterator iter_inner = string_split_create(current, "-");
+        struct StringSplitIterator iter_inner =
+            string_split_create(current, "-", STRING_SPLIT_DEFAULT);
 
         const struct StringView* segment_inner = &iter_inner.current_segment;
         bool result = string_view_try_parse_int64(segment_inner, &range_start);

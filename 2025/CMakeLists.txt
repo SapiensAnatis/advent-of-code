@@ -29,7 +29,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
 include_directories("${CMAKE_CURRENT_LIST_DIR}")
 
-add_executable(aoc2025 asan_options.c)
+add_executable(aoc2025
+        asan_options.c
+        lib_test.cpp)
 
 target_link_libraries(aoc2025 gtest_main)
 target_link_libraries(aoc2025 hardening)

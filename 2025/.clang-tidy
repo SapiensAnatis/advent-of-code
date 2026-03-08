@@ -1,8 +1,6 @@
 # Generated from CLion Inspection settings
 ---
-ExtraArgs:
-  - '-Wno-error=keyword-macro'
-  - '-Wno-error=format-pedantic'
+
 HeaderFilterRegex: '(day\d\d|lib)\/.*'
 CheckOptions:
   readability-identifier-naming.LocalVariableCase: "lower_case"
@@ -25,6 +23,7 @@ cert-str34-c,
 cppcoreguidelines-*,
 -cppcoreguidelines-avoid-magic-numbers,
 -cppcoreguidelines-pro-type-vararg,
+-cppcoreguidelines-use-enum-class,
 google-*,
 hicpp-exception-baseclass,
 hicpp-multiway-paths-covered,
@@ -32,5 +31,6 @@ misc-*,
 modernize-*,
 -modernize-use-std-print,
 -modernize-use-trailing-return-type,
+-modernize-use-using,
 performance-*
 readability-*'
