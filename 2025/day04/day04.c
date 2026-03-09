@@ -94,19 +94,20 @@ int32_t day04_part2(FILE* file) {
     int32_t removed_paper_count = 0;
 
     do {
-        const struct GridCoordinate* coord = vector_pop(coords_to_edit);
+        struct GridCoordinate coord;
+        vector_pop(coords_to_edit, &coord);
 
         // The co-ordinates we queue up are not guaranteed to be unique, so check if we have
         // already removed a paper roll here
-        if (grid_get_square(grid, coord->x, coord->y) != '@') {
+        if (grid_get_square(grid, coord.x, coord.y) != '@') {
             continue;
         }
 
-        grid_set_square(grid, coord->x, coord->y, '.');
+        grid_set_square(grid, coord.x, coord.y, '.');
         removed_paper_count += 1;
 
         const struct GridAdjacentCoordinates adjacent_coords =
-            grid_get_adjacent_coords(grid, coord->x, coord->y);
+            grid_get_adjacent_coords(grid, coord.x, coord.y);
 
         for (uint8_t i = 0; i < adjacent_coords.count; i++) {
             const struct GridCoordinate neighbour_coord = adjacent_coords.coords[i];

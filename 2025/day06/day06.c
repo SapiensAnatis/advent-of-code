@@ -134,7 +134,7 @@ static struct Vector* parse_math_problems(FILE* file) {
         } while (string_split_move_next(&op_iterator));
     }
 
-    DEBUG_PRINT("Parsed %" PRIi64 "　math problems：", vector_size(problems));
+    DEBUG_PRINT("Parsed %zu math problems：", vector_size(problems));
 
     return problems;
 }

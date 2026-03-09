@@ -3,10 +3,11 @@
 //
 #include "lib/hash_map.h"
 
-#include "debug.h"
+#include "lib/debug.h"
 #include "lib/fatal_error.h"
 #include "lib/vector.h"
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,7 +28,7 @@ static struct HashMapBucket* hash_map_get_bucket(const struct HashMap* hash_map,
 }
 
 static void hash_map_entry_free(void* entry) {
-    DEBUG_PRINT("Destroying hash map entry at %p", entry);
+    // DEBUG_PRINT("Destroying hash map entry at %p", entry);
     // TODO: allow specifying key and value deleters
     // until then, the below is correct-ish
     struct HashMapEntry* casted_entry = entry;
@@ -37,8 +38,8 @@ static void hash_map_entry_free(void* entry) {
 
 static void hash_map_buckets_free(struct HashMap* hash_map) {
     for (size_t i = 0; i < hash_map->buckets_len; i++) {
-        const struct HashMapBucket bucket = hash_map->buckets[i];
-        vector_free(bucket.entries);
+        const struct HashMapBucket* bucket = &hash_map->buckets[i];
+        vector_free(bucket->entries);
     }
 
     free(hash_map->buckets);
@@ -58,28 +59,6 @@ static struct HashMapEntry hash_map_create_new_entry(const struct HashMap* hash_
     memcpy(new_entry.value, value, hash_map->value_size);
 
     return new_entry;
-}
-
-/**
- * Check if the hash map's load factor exceeds the resize threshold, and if so, expand the bucket
- * array and re-hash all values.
- * @param hash_map The hash map to maybe expand.
- * @return A value indicating whether an expansion was performed.
- */
-static bool hash_map_maybe_expand(struct HashMap* hash_map) {
-    const double current_load =
-        (double)hash_map->occupied_buckets_count / (double)hash_map->buckets_len;
-
-    if (current_load <= RESIZE_LOAD_FACTOR) {
-        return false;
-    }
-
-    DEBUG_PRINT("Resizing hash map due to exceeded load factor: current = %.3f", current_load);
-
-    const size_t new_buckets_len = hash_map->buckets_len * 2;
-    hash_map_ensure_capacity(hash_map, new_buckets_len);
-
-    return true;
 }
 
 /**
@@ -130,7 +109,7 @@ bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out
     for (size_t i = 0; i < vector_size(bucket->entries); i++) {
         const struct HashMapEntry* entry = vector_at(bucket->entries, i);
         if (hash_map->equal_fn(key, entry->key)) {
-            DEBUG_PRINT("Found value in hash map");
+            // DEBUG_PRINT("Found value in hash map");
             memcpy(out_value, entry->value, hash_map->value_size);
             return true;
         }
@@ -152,25 +131,11 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
 
     if (bucket->entries == nullptr) {
         bucket->entries = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
-        hash_map->occupied_buckets_count += 1;
-
-        // Only bother doing the resize routine after the load has changed
-        const bool expanded = hash_map_maybe_expand(hash_map);
-        if (expanded) {
-            // rehash invalidated the previous bucket pointer
-            bucket = hash_map_get_bucket(hash_map, key);
-
-            // could also be null again now...
-            if (bucket->entries == nullptr) {
-                bucket->entries = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
-                hash_map->occupied_buckets_count += 1;
-            }
-        }
     }
 
     for (size_t i = 0; i < vector_size(bucket->entries); i++) {
         const struct HashMapEntry* entry = vector_at(bucket->entries, i);
-        if (hash_map->equal_fn(&key, entry->key)) {
+        if (hash_map->equal_fn(key, entry->key)) {
             // Value already exists
             DEBUG_PRINT("Value to add already existed in hash map");
             return false;
@@ -179,6 +144,24 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
 
     const struct HashMapEntry new_entry = hash_map_create_new_entry(hash_map, key, value);
     vector_append(bucket->entries, &new_entry);
+
+    hash_map->total_values_count += 1;
+
+    // Only bother doing the resize routine after writing
+
+    const double current_load =
+        (double)hash_map->total_values_count / (double)hash_map->buckets_len;
+
+    if (current_load > RESIZE_LOAD_FACTOR) {
+        DEBUG_PRINT("Resizing hash map due to exceeded load factor: current = %.3f (%zu entries / "
+                    "%zu buckets)",
+                    current_load, hash_map->total_values_count, hash_map->buckets_len);
+
+        const size_t new_buckets_len = hash_map->buckets_len * 2;
+        DEBUG_PRINT("New size: %zu buckets", new_buckets_len);
+
+        hash_map_ensure_capacity(hash_map, new_buckets_len);
+    }
 
     return true;
 }
@@ -190,7 +173,7 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
  */
 void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
     size_t new_buckets_len = hash_map->buckets_len;
-    while (new_buckets_len < capacity) {
+    while (new_buckets_len != 0 && new_buckets_len < capacity) {
         new_buckets_len *= 2;
     }
 
@@ -203,6 +186,8 @@ void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
         FATAL_ERROR("Failed to reallocate hash map buckets");
     }
 
+    hash_map->total_values_count = 0;
+
     for (size_t i = 0; i < hash_map->buckets_len; i++) {
         const struct HashMapBucket* bucket = &hash_map->buckets[i];
 
@@ -210,10 +195,12 @@ void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
             continue; // No work to do
         }
 
-        for (size_t j = 0; j < vector_size(bucket->entries); j++) {
-            const struct HashMapEntry* old_entry = vector_at(bucket->entries, j);
+        while (vector_size(bucket->entries) > 0) {
+            struct HashMapEntry old_entry;
+            vector_pop(bucket->entries, &old_entry);
+
             const size_t new_bucket_idx =
-                get_bucket_index(new_buckets_len, hash_map->hash_fn, old_entry->key);
+                get_bucket_index(new_buckets_len, hash_map->hash_fn, old_entry.key);
             struct HashMapBucket* new_bucket = &new_buckets[new_bucket_idx];
 
             if (new_bucket->entries == nullptr) {
@@ -221,13 +208,11 @@ void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
                     vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
             }
 
-            // Deep copy value; entry will be destroyed by vector_free after this loop
-            // We could do move semantics, but it would require us to use a different deleter for
-            // rehashing vs. freeing
-
-            const struct HashMapEntry new_entry =
-                hash_map_create_new_entry(hash_map, old_entry->key, old_entry->value);
-            vector_append(new_bucket->entries, &new_entry);
+            // Move semantics!!!!
+            // This is safe because we are shrinking the vector's length, so hash_map_buckets_free
+            // will not free these entries
+            vector_append(new_bucket->entries, &old_entry);
+            hash_map->total_values_count += 1;
         }
     }
 

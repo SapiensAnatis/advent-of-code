@@ -20,7 +20,7 @@ size_t vector_size(const struct Vector* vector);
 
 void* vector_data(struct Vector* vector);
 
-void* vector_pop(struct Vector* vector);
+void vector_pop(struct Vector* vector, void* out_value);
 
 void* vector_front(struct Vector* vector);
 

@@ -39,7 +39,7 @@ struct String* string_copy(const struct String* value) {
 
 void string_append(struct String* string, const char* value) {
     assert(string_is_null_terminated(string));
-    vector_pop(string->char_buffer); // Remove existing null terminator
+    vector_pop(string->char_buffer, nullptr); // Remove existing null terminator
     vector_append_range(string->char_buffer, value, strlen(value));
     vector_append(string->char_buffer, &NULL_TERMINATOR);
 }
@@ -54,8 +54,8 @@ void string_trim_end(struct String* string, const char target) {
 
     while (*current_ending == target) {
         DEBUG_PRINT("Removing one character");
-        vector_pop(string->char_buffer); // pop current null terminator
-        vector_pop(string->char_buffer); // pop character to trim
+        vector_pop(string->char_buffer, nullptr); // pop current null terminator
+        vector_pop(string->char_buffer, nullptr); // pop character to trim
         vector_append(string->char_buffer,
                       &NULL_TERMINATOR); // re-insert null terminator where trimmed char was
     }

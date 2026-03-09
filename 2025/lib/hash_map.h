@@ -24,7 +24,7 @@ typedef bool (*EqualFn)(const void*, const void*);
 struct HashMap {
     struct HashMapBucket* buckets;
     size_t buckets_len;
-    size_t occupied_buckets_count;
+    size_t total_values_count;
     const size_t key_size;
     const size_t value_size;
     const HashFn hash_fn;

@@ -1,6 +1,8 @@
 #include "lib/vector.h"
+
 #include "lib/debug.h"
 #include "lib/deleter.h"
+#include "lib/fatal_error.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -101,20 +103,21 @@ void* vector_data(struct Vector* vector) { return vector->data; }
 /**
  * Remove an element from the end of the vector.
  * @param vector The vector to remove from.
+ * @param out_value The value to write to. Can be nullptr if you don't care what value was popped.
  * @return A reference to the removed element.
- * @note The reference to the removed element is within the vector's contiguous memory. Therefore,
- * the returned reference is no longer valid if vector_append, vector_remove_at, or vector_free is
- * called after vector_pop. If the vector has a custom deleter, the caller is responsible for
- * freeing the returned reference with the correct deleter.
  */
-void* vector_pop(struct Vector* vector) {
+void vector_pop(struct Vector* vector, void* out_value) {
     if (vector->size == 0) {
-        assert(false && "attempted to pop from empty vector");
+        FATAL_ERROR("Attempted to pop from empty vector");
         abort();
     }
-    void* element = vector_at(vector, vector->size - 1);
+
+    const void* element = vector_at(vector, vector->size - 1);
     vector->size -= 1;
-    return element;
+
+    if (out_value != nullptr) {
+        memcpy(out_value, element, vector->element_size);
+    }
 }
 
 void* vector_front(struct Vector* vector) { return vector_at(vector, 0); }
@@ -142,7 +145,7 @@ void vector_remove_at(struct Vector* vector, const size_t index) {
 }
 
 void vector_free(struct Vector* vector) {
-    DEBUG_PRINT("Destroying vector at %p", (void*)vector);
+    // DEBUG_PRINT("Destroying vector at %p", (void*)vector);
 
     if (vector == nullptr) {
         return;
