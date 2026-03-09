@@ -231,7 +231,10 @@ void hash_map_free(struct HashMap* hash_map) {
     // free(hash_map); stack allocated
 }
 
-size_t hash_int32(const void* value) { return *(int32_t*)value; }
+size_t hash_int32(const void* value) {
+    // Negative numbers will be reinterpreted as very large numbers
+    return *(int32_t*)value;
+}
 bool equal_int32(const void* value1, const void* value2) {
-    return (*(int32_t*)value1) == (*(int32_t*)value2);
+    return *(int32_t*)value1 == *(int32_t*)value2;
 }

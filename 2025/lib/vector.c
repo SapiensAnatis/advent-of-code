@@ -109,15 +109,19 @@ void* vector_data(struct Vector* vector) { return vector->data; }
 void vector_pop(struct Vector* vector, void* out_value) {
     if (vector->size == 0) {
         FATAL_ERROR("Attempted to pop from empty vector");
-        abort();
     }
 
-    const void* element = vector_at(vector, vector->size - 1);
+    void* element = vector_at(vector, vector->size - 1);
     vector->size -= 1;
 
     if (out_value != nullptr) {
         memcpy(out_value, element, vector->element_size);
     }
+
+    // Do NOT do this as we no longer own the value
+    // if (vector->deleter) {
+    //     (*vector->deleter)(element);
+    // }
 }
 
 void* vector_front(struct Vector* vector) { return vector_at(vector, 0); }
