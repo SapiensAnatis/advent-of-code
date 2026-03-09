@@ -1,6 +1,7 @@
 #include "day05/day05.h"
 
 #include "lib/debug.h"
+#include "lib/deleter.h"
 #include "lib/file.h"
 #include "lib/range.h"
 #include "lib/string_split.h"
@@ -17,7 +18,7 @@
 static struct Vector* parse_ranges(FILE* file) {
     char line_buf[256];
 
-    struct Vector* range_vector = vector_create(sizeof(struct Range), VECTOR_DEFAULT_DELETER);
+    struct Vector* range_vector = vector_create(sizeof(struct Range), DEFAULT_DELETER);
 
     while (read_line(file, line_buf, sizeof(line_buf))) {
         if (line_buf[0] == '\0') {
@@ -86,8 +87,7 @@ int64_t day05_part2(FILE* file) {
     struct Vector* range_vector = parse_ranges(file);
 
     while (true) {
-        struct Vector* merged_range_vector =
-            vector_create(sizeof(struct Range), VECTOR_DEFAULT_DELETER);
+        struct Vector* merged_range_vector = vector_create(sizeof(struct Range), DEFAULT_DELETER);
         bool any_merged = false;
 
         for (size_t i = 0; i < vector_size(range_vector); i++) {

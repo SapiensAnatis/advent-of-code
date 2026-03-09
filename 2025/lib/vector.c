@@ -1,5 +1,6 @@
 #include "lib/vector.h"
 #include "lib/debug.h"
+#include "lib/deleter.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -20,10 +21,10 @@ static constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
  * @param element_size The size of each individual element.
  * @param deleter Custom deleter to call when removing elements or destroying the vector. Can be
  * nullptr if the vector element type does not need special cleanup (i.e. does not own pointers).
- * See VECTOR_DEFAULT_DELETER which is equal to nullptr.
+ * See DEFAULT_DELETER which is equal to nullptr.
  * @return A pointer to the created vector.
  */
-struct Vector* vector_create(const size_t element_size, void (*deleter)(void*)) {
+struct Vector* vector_create(const size_t element_size, const Deleter deleter) {
     // DEBUG_PRINT("Creating new vector with element_size %ld", element_size);
 
     struct Vector* result = malloc(sizeof(struct Vector));

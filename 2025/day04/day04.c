@@ -1,6 +1,7 @@
 #include "day04/day04.h"
 
 #include "lib/debug.h"
+#include "lib/deleter.h"
 #include "lib/file.h"
 #include "lib/grid.h"
 #include "lib/vector.h"
@@ -67,8 +68,7 @@ int32_t day04_part2(FILE* file) {
         abort();
     }
 
-    struct Vector* coords_to_edit =
-        vector_create(sizeof(struct GridCoordinate), VECTOR_DEFAULT_DELETER);
+    struct Vector* coords_to_edit = vector_create(sizeof(struct GridCoordinate), DEFAULT_DELETER);
 
     // Find initial squares that can be removed
     for (grid_coord x = 0; x < grid->size_x; x++) {

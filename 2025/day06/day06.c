@@ -1,6 +1,7 @@
 #include "day06/day06.h"
 
 #include "lib/debug.h"
+#include "lib/deleter.h"
 #include "lib/file.h"
 #include "lib/string_split.h"
 #include "lib/string_view.h"
@@ -66,8 +67,8 @@ static struct Vector* parse_math_problems(FILE* file) {
 
     do {
         struct MathProblem problem = {
-            .operands = vector_create(sizeof(int32_t), VECTOR_DEFAULT_DELETER),
-            .operand_pos = vector_create(sizeof(size_t), VECTOR_DEFAULT_DELETER),
+            .operands = vector_create(sizeof(int32_t), DEFAULT_DELETER),
+            .operand_pos = vector_create(sizeof(size_t), DEFAULT_DELETER),
             .operator_ch = '+',
         };
 
@@ -218,7 +219,7 @@ int64_t day06_part2(FILE* file) {
         const struct MathProblem* problem = vector_at(problems, i);
 
         struct MathProblem transformed_problem = {
-            .operands = vector_create(sizeof(int32_t), VECTOR_DEFAULT_DELETER),
+            .operands = vector_create(sizeof(int32_t), DEFAULT_DELETER),
             .operand_pos = nullptr, // Don't care
             .operator_ch = problem->operator_ch,
         };

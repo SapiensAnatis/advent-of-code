@@ -1,15 +1,14 @@
 #ifndef AOC2025_LIB_VECTOR_H
 #define AOC2025_LIB_VECTOR_H
 
+#include "lib/deleter.h"
+
 #include <stddef.h>
 #include <stdlib.h>
 
 struct Vector;
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-static constexpr void (*const VECTOR_DEFAULT_DELETER)(void*) = nullptr;
-
-struct Vector* vector_create(size_t element_size, void (*deleter)(void*));
+struct Vector* vector_create(size_t element_size, Deleter deleter);
 
 void* vector_at(const struct Vector* vector, size_t index);
 

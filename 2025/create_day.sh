@@ -35,6 +35,9 @@ if [ ! -f "$c_file_name" ]; then
   tee "$c_file_name" <<EOF > /dev/null
 #include "${day_name}/${day_name}.h"
 
+#include <stdint.h>
+#include <stdio.h>
+
 EOF
 fi
 
@@ -46,6 +49,7 @@ if [ ! -f "$h_file_name" ]; then
 #define ${include_guard}
 
 #include <stdint.h>
+#include <stdio.h>
 
 #endif // ${include_guard}
 EOF

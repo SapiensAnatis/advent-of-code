@@ -1,5 +1,6 @@
 #include "lib/file.h"
 
+#include "fatal_error.h"
 #include "lib/string.h"
 
 #include <assert.h>
@@ -43,8 +44,14 @@ struct String* read_all_text(FILE* file) {
 
     while ((bytes_read = fread(internal_buffer, sizeof(char), sizeof(internal_buffer) - 1, file)),
            bytes_read != 0) {
-        assert(ferror(file) == 0 && "ferror detected");
-        assert(bytes_read < sizeof(internal_buffer));
+        if (ferror(file) != 0) {
+            FATAL_ERROR("ferror detected");
+        }
+
+        if (bytes_read >= sizeof(internal_buffer)) {
+            FATAL_ERROR("buffer too small (fread gave us too much?)");
+        }
+
         internal_buffer[bytes_read] = '\0';
         string_append(result, internal_buffer);
     }
@@ -60,11 +67,12 @@ bool read_line(FILE* file, char* buffer, const size_t buffer_size) {
     char internal_buffer[128];
 
     do {
+        // fgets stops if a newline is found
         const char* fgets_result = fgets(internal_buffer, sizeof(internal_buffer), file);
         if (fgets_result == nullptr) {
             // Read error or EOF
             if (ferror(file)) {
-                assert(false && "fgets error reading file");
+                perror("read_line");
                 abort();
             }
             return false;
@@ -77,8 +85,7 @@ bool read_line(FILE* file, char* buffer, const size_t buffer_size) {
         }
 
         if (read_size > remaining_size) {
-            assert(false && "buffer too small to contain line");
-            abort();
+            FATAL_ERROR("buffer too small to contain line");
         }
 
         memcpy(write_position, internal_buffer, read_size);
