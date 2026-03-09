@@ -1,4 +1,5 @@
-add_library(aoc2025_lib)
+add_library(aoc2025_lib
+        hash_set.h)
 
 option(DEBUG_PRINT_ENABLED "Enable debug print" 0)
 

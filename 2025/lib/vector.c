@@ -69,7 +69,7 @@ void vector_append_range(struct Vector* vector, const void* elements, const size
 
     size_t required_capacity = vector->size + elements_size;
 
-    if (required_capacity >= vector->capacity) {
+    if (required_capacity > vector->capacity) {
         size_t new_capacity = vector->capacity;
         while (new_capacity < required_capacity) {
             new_capacity *= 2;

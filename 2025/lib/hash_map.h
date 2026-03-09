@@ -15,15 +15,16 @@ struct HashMapEntry {
 };
 
 struct HashMapBucket {
-    struct Vector* elements; // vector<HashMapEntry>
+    struct Vector* entries; // vector<HashMapEntry>
 };
 
 typedef size_t (*HashFn)(const void*);
-typedef size_t (*EqualFn)(const void*, const void*);
+typedef bool (*EqualFn)(const void*, const void*);
 
 struct HashMap {
     struct HashMapBucket* buckets;
     size_t buckets_len;
+    size_t occupied_buckets_count;
     const size_t key_size;
     const size_t value_size;
     const HashFn hash_fn;
@@ -35,13 +36,15 @@ struct HashMap hash_map_create(size_t key_size, size_t value_size, HashFn hash_f
 
 bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out_value);
 
-bool hash_map_try_add(const struct HashMap* hash_map, const void* key, const void* value);
+bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* value);
+
+void hash_map_ensure_capacity(struct HashMap* hash_map, size_t capacity);
 
 void hash_map_free(struct HashMap* hash_map);
 
 /** Hash / equality helpers **/
 
-size_t hash_int32(const int32_t value);
-bool equal_int32(const int32_t value1, const int32_t value2);
+size_t hash_int32(const void* value);
+bool equal_int32(const void* value1, const void* value2);
 
 #endif // AOC2025_LIB_HASH_MAP_H

@@ -3,27 +3,83 @@
 //
 #include "lib/hash_map.h"
 
+#include "debug.h"
 #include "lib/fatal_error.h"
 #include "lib/vector.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 static constexpr size_t INITIAL_BUCKETS_SIZE = 10;
+static constexpr double RESIZE_LOAD_FACTOR = 0.75; // from Java
 
-static struct HashMapBucket* get_bucket(const struct HashMap* hash_map, const void* key) {
-    const size_t hash = hash_map->hash_fn(key);
-    const size_t index = hash % hash_map->buckets_len;
+static size_t get_bucket_index(const size_t buckets_len, const HashFn hash_fn, const void* key) {
+    const size_t hash = hash_fn(key);
+    const size_t index = hash % buckets_len;
+    return index;
+}
+
+static struct HashMapBucket* hash_map_get_bucket(const struct HashMap* hash_map, const void* key) {
+    const size_t index = get_bucket_index(hash_map->buckets_len, hash_map->hash_fn, key);
     return &hash_map->buckets[index];
 }
 
 static void hash_map_entry_free(void* entry) {
+    DEBUG_PRINT("Destroying hash map entry at %p", entry);
     // TODO: allow specifying key and value deleters
     // until then, the below is correct-ish
     struct HashMapEntry* casted_entry = entry;
     free(casted_entry->key);
     free(casted_entry->value);
+}
+
+static void hash_map_buckets_free(struct HashMap* hash_map) {
+    for (size_t i = 0; i < hash_map->buckets_len; i++) {
+        const struct HashMapBucket bucket = hash_map->buckets[i];
+        vector_free(bucket.entries);
+    }
+
+    free(hash_map->buckets);
+}
+
+static struct HashMapEntry hash_map_create_new_entry(const struct HashMap* hash_map,
+                                                     const void* key, const void* value) {
+    struct HashMapEntry new_entry;
+    new_entry.key = malloc(hash_map->key_size);
+    new_entry.value = malloc(hash_map->value_size);
+
+    if (new_entry.key == nullptr || new_entry.value == nullptr) {
+        FATAL_ERROR("Failed to allocate hash map entry key and value");
+    }
+
+    memcpy(new_entry.key, key, hash_map->key_size);
+    memcpy(new_entry.value, value, hash_map->value_size);
+
+    return new_entry;
+}
+
+/**
+ * Check if the hash map's load factor exceeds the resize threshold, and if so, expand the bucket
+ * array and re-hash all values.
+ * @param hash_map The hash map to maybe expand.
+ * @return A value indicating whether an expansion was performed.
+ */
+static bool hash_map_maybe_expand(struct HashMap* hash_map) {
+    const double current_load =
+        (double)hash_map->occupied_buckets_count / (double)hash_map->buckets_len;
+
+    if (current_load <= RESIZE_LOAD_FACTOR) {
+        return false;
+    }
+
+    DEBUG_PRINT("Resizing hash map due to exceeded load factor: current = %.3f", current_load);
+
+    const size_t new_buckets_len = hash_map->buckets_len * 2;
+    hash_map_ensure_capacity(hash_map, new_buckets_len);
+
+    return true;
 }
 
 /**
@@ -37,13 +93,12 @@ static void hash_map_entry_free(void* entry) {
 struct HashMap hash_map_create(const size_t key_size, const size_t value_size, const HashFn hash_fn,
                                const EqualFn equal_fn) {
 
-    // n.b. MUST use calloc, as hash_map_free will access each bucket and try to free the owned
-    // vector, if uninitialised buckets are not zeroed then that is UB.
-    // ReSharper disable once CppDFAMemoryLeak - owned by hash map and freed in hash_map_free
+    // n.b. MUST use calloc, as hash_map_free will access each bucket and try to free the
+    // owned vector, if uninitialised buckets are not zeroed then that is UB.
     struct HashMapBucket* hash_map_buckets =
         calloc(INITIAL_BUCKETS_SIZE, sizeof(struct HashMapBucket));
     if (hash_map_buckets == nullptr) {
-        FATAL_ERROR("failed to allocate hash map buckets");
+        FATAL_ERROR("Failed to allocate hash map buckets");
     }
 
     const struct HashMap hash_map = {
@@ -62,19 +117,21 @@ struct HashMap hash_map_create(const size_t key_size, const size_t value_size, c
  * Tries to retrieve a value from the hash map with the given key.
  * @param hash_map The hash map in which to search for the key.
  * @param key The key to search for.
- * @param out_value If the value is found, the destination to write it to. Must not be nullptr.
+ * @param out_value If the value is found, the destination to write it to. Must not be
+ * nullptr.
  * @return A boolean indicating whether the value was found.
  */
 bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out_value) {
-    const struct HashMapBucket* bucket = get_bucket(hash_map, key);
-    if (bucket->elements == nullptr) {
+    const struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
+    if (bucket->entries == nullptr) {
         return false;
     }
 
-    for (size_t i = 0; i < vector_size(bucket->elements); i++) {
-        const struct HashMapEntry* entry = vector_at(bucket->elements, i);
-        if (hash_map->equal_fn(&key, &entry->key)) {
-            memcpy(out_value, &entry->value, hash_map->value_size);
+    for (size_t i = 0; i < vector_size(bucket->entries); i++) {
+        const struct HashMapEntry* entry = vector_at(bucket->entries, i);
+        if (hash_map->equal_fn(key, entry->key)) {
+            DEBUG_PRINT("Found value in hash map");
+            memcpy(out_value, entry->value, hash_map->value_size);
             return true;
         }
     }
@@ -87,26 +144,96 @@ bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out
  * @param hash_map The hash map to add to.
  * @param key The key to add at.
  * @param value The value to add.
- * @return A boolean - if true the value was added, if false, the value already existed in the hash
- * map.
+ * @return A boolean - if true the value was added, if false, the value already existed in
+ * the hash map.
  */
-bool hash_map_try_add(const struct HashMap* hash_map, const void* key, const void* value) {
-    struct HashMapBucket* bucket = get_bucket(hash_map, key);
+bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* value) {
+    struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
 
-    if (bucket->elements == nullptr) {
-        bucket->elements = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
+    if (bucket->entries == nullptr) {
+        bucket->entries = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
+        hash_map->occupied_buckets_count += 1;
+
+        // Only bother doing the resize routine after the load has changed
+        const bool expanded = hash_map_maybe_expand(hash_map);
+        if (expanded) {
+            // rehash invalidated the previous bucket pointer
+            bucket = hash_map_get_bucket(hash_map, key);
+
+            // could also be null again now...
+            if (bucket->entries == nullptr) {
+                bucket->entries = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
+                hash_map->occupied_buckets_count += 1;
+            }
+        }
     }
 
-    for (size_t i = 0; i < vector_size(bucket->elements); i++) {
-        const struct HashMapEntry* entry = vector_at(bucket->elements, i);
-        if (hash_map->equal_fn(&key, &entry->key)) {
+    for (size_t i = 0; i < vector_size(bucket->entries); i++) {
+        const struct HashMapEntry* entry = vector_at(bucket->entries, i);
+        if (hash_map->equal_fn(&key, entry->key)) {
             // Value already exists
+            DEBUG_PRINT("Value to add already existed in hash map");
             return false;
         }
     }
 
-    vector_append(bucket->elements, value);
+    const struct HashMapEntry new_entry = hash_map_create_new_entry(hash_map, key, value);
+    vector_append(bucket->entries, &new_entry);
+
     return true;
+}
+
+/**
+ * Ensure that the hash map has at least a given number of buckets.
+ * @param hash_map The hash map to potentially resize.
+ * @param capacity The desired bucket count.
+ */
+void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
+    size_t new_buckets_len = hash_map->buckets_len;
+    while (new_buckets_len < capacity) {
+        new_buckets_len *= 2;
+    }
+
+    if (new_buckets_len <= hash_map->buckets_len) {
+        return;
+    }
+
+    struct HashMapBucket* new_buckets = calloc(new_buckets_len, sizeof(struct HashMapBucket));
+    if (new_buckets == nullptr) {
+        FATAL_ERROR("Failed to reallocate hash map buckets");
+    }
+
+    for (size_t i = 0; i < hash_map->buckets_len; i++) {
+        const struct HashMapBucket* bucket = &hash_map->buckets[i];
+
+        if (bucket->entries == nullptr) {
+            continue; // No work to do
+        }
+
+        for (size_t j = 0; j < vector_size(bucket->entries); j++) {
+            const struct HashMapEntry* old_entry = vector_at(bucket->entries, j);
+            const size_t new_bucket_idx =
+                get_bucket_index(new_buckets_len, hash_map->hash_fn, old_entry->key);
+            struct HashMapBucket* new_bucket = &new_buckets[new_bucket_idx];
+
+            if (new_bucket->entries == nullptr) {
+                new_bucket->entries =
+                    vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
+            }
+
+            // Deep copy value; entry will be destroyed by vector_free after this loop
+            // We could do move semantics, but it would require us to use a different deleter for
+            // rehashing vs. freeing
+
+            const struct HashMapEntry new_entry =
+                hash_map_create_new_entry(hash_map, old_entry->key, old_entry->value);
+            vector_append(new_bucket->entries, &new_entry);
+        }
+    }
+
+    hash_map_buckets_free(hash_map);
+    hash_map->buckets = new_buckets;
+    hash_map->buckets_len = new_buckets_len;
 }
 
 /**
@@ -114,15 +241,12 @@ bool hash_map_try_add(const struct HashMap* hash_map, const void* key, const voi
  * @param hash_map The hash map to free.
  */
 void hash_map_free(struct HashMap* hash_map) {
-    for (size_t i = 0; i < hash_map->buckets_len; i++) {
-        const struct HashMapBucket bucket = hash_map->buckets[i];
-        vector_free(bucket.elements);
-    }
-
-    free(hash_map->buckets);
+    hash_map_buckets_free(hash_map);
     memset(hash_map, 0, sizeof(struct HashMap));
     // free(hash_map); stack allocated
 }
 
-size_t hash_int32(const int32_t value) { return value; }
-bool equal_int32(const int32_t value1, const int32_t value2) { return value1 == value2; }
+size_t hash_int32(const void* value) { return *(int32_t*)value; }
+bool equal_int32(const void* value1, const void* value2) {
+    return (*(int32_t*)value1) == (*(int32_t*)value2);
+}
