@@ -5,13 +5,7 @@
 #ifndef AOC2025_LIB_FATAL_ERROR_H
 #define AOC2025_LIB_FATAL_ERROR_H
 
-#ifdef __GNUC__
-#define NORETURN __attribute__((noreturn))
-#else
-#define NORETURN
-#endif
-
-void fatal_error(const char* file, int line, const char* message) NORETURN;
+[[noreturn]] void fatal_error(const char* file, int line, const char* message);
 
 #define FATAL_ERROR(reason)                                                                        \
     do {                                                                                           \
