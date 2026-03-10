@@ -9,6 +9,9 @@
 
 #include <stdint.h>
 
+typedef size_t (*HashFn)(const void*);
+typedef bool (*EqualFn)(const void*, const void*);
+
 struct HashMapEntry {
     void* key;
     void* value;
@@ -18,9 +21,6 @@ struct HashMapBucket {
     struct Vector* entries; // vector<HashMapEntry>
 };
 
-typedef size_t (*HashFn)(const void*);
-typedef bool (*EqualFn)(const void*, const void*);
-
 struct HashMap {
     struct HashMapBucket* buckets;
     size_t buckets_len;
@@ -29,6 +29,14 @@ struct HashMap {
     const size_t value_size;
     const HashFn hash_fn;
     const EqualFn equal_fn;
+};
+
+struct HashMapIterator {
+    const struct HashMap* hash_map;
+    size_t bucket_idx;
+    size_t bucket_entry_idx;
+    void* current_key;
+    void* current_value;
 };
 
 struct HashMap hash_map_create(size_t key_size, size_t value_size, HashFn hash_fn,
@@ -41,6 +49,10 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
 void hash_map_ensure_capacity(struct HashMap* hash_map, size_t capacity);
 
 void hash_map_free(struct HashMap* hash_map);
+
+struct HashMapIterator hash_map_iterator_create(const struct HashMap* hash_map);
+
+bool hash_map_iterator_move_next(struct HashMapIterator* iter);
 
 /** Hash / equality helpers **/
 

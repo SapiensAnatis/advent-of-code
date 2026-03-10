@@ -25,6 +25,9 @@ static constexpr size_t VECTOR_INITIAL_CAPACITY = 4;
  * nullptr if the vector element type does not need special cleanup (i.e. does not own pointers).
  * See DEFAULT_DELETER which is equal to nullptr.
  * @return A pointer to the created vector.
+ * @note The provided deleter will be passed a void* p which points to the element that is to be
+ * deleted. It should _not_ free p itself, but rather only the associated resources that p owns. The
+ * vector itself will free p after invoking the custom deleter.
  */
 struct Vector* vector_create(const size_t element_size, const Deleter deleter) {
     // DEBUG_PRINT("Creating new vector with element_size %ld", element_size);

@@ -31,6 +31,9 @@ static void hash_map_entry_free(void* entry) {
     // DEBUG_PRINT("Destroying hash map entry at %p", entry);
     // TODO: allow specifying key and value deleters
     // until then, the below is correct-ish
+    // At that time, consider expanding vector to allow passing context to deleters, so we don't
+    // have to store the deleter in each HashMapEntry, and can pass the hash map as context, which
+    // contains just one copy of key/value deleters
     struct HashMapEntry* casted_entry = entry;
     free(casted_entry->key);
     free(casted_entry->value);
@@ -229,6 +232,63 @@ void hash_map_free(struct HashMap* hash_map) {
     hash_map_buckets_free(hash_map);
     memset(hash_map, 0, sizeof(struct HashMap));
     // free(hash_map); stack allocated
+}
+
+/**
+ * Creates an iterator over the hash map's values.
+ * @param hash_map The hash map to iterate over.
+ * @return An iterator, whose value field can be used to access a value in the hash map.
+ * @note The order that entries in the map are yielded in is effectively random as it is based on
+ * their hash and the size of the bucket array.
+ */
+struct HashMapIterator hash_map_iterator_create(const struct HashMap* hash_map) {
+    for (size_t bucket_idx = 0; bucket_idx < hash_map->buckets_len; bucket_idx++) {
+        const struct HashMapBucket* bucket = &hash_map->buckets[bucket_idx];
+        if (bucket->entries != nullptr && vector_size(bucket->entries) != 0) {
+            const struct HashMapEntry* entry = vector_at(bucket->entries, 0);
+            return (struct HashMapIterator){
+                .hash_map = hash_map,
+                .bucket_idx = bucket_idx,
+                .bucket_entry_idx = 0,
+                .current_key = entry->key,
+                .current_value = entry->value,
+            };
+        }
+    }
+
+    FATAL_ERROR("Attempted to create iterator over empty hash map");
+}
+
+bool hash_map_iterator_move_next(struct HashMapIterator* iter) {
+    const struct HashMapBucket* current_bucket = &iter->hash_map->buckets[iter->bucket_idx];
+
+    if (iter->bucket_entry_idx + 1 < vector_size(current_bucket->entries)) {
+        iter->bucket_entry_idx += 1;
+
+        const struct HashMapEntry* entry =
+            vector_at(current_bucket->entries, iter->bucket_entry_idx);
+        iter->current_key = entry->key;
+        iter->current_value = entry->value;
+
+        return true;
+    }
+
+    for (size_t bucket_idx = iter->bucket_idx + 1; bucket_idx < iter->hash_map->buckets_len;
+         bucket_idx++) {
+        const struct HashMapBucket* bucket = &iter->hash_map->buckets[bucket_idx];
+        if (bucket->entries != nullptr && vector_size(bucket->entries) != 0) {
+            iter->bucket_idx = bucket_idx;
+            iter->bucket_entry_idx = 0;
+
+            const struct HashMapEntry* entry = vector_at(bucket->entries, 0);
+            iter->current_key = entry->key;
+            iter->current_value = entry->value;
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 size_t hash_int32(const void* value) {

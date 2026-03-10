@@ -99,3 +99,33 @@ TEST(HashMap, EnsureCapacity) {
 
     hash_map_free(&hash_map);
 }
+
+TEST(HashMap, IteratorIterates) {
+    struct HashMap hash_map =
+        hash_map_create(sizeof(int32_t), sizeof(int32_t), hash_int32, equal_int32);
+
+    for (int32_t i = 1; i < 101; i++) {
+        const int32_t key = i;
+        const int32_t value = i * 2;
+        hash_map_try_add(&hash_map, &key, &value);
+    }
+
+    // Arithmetic series: S = n/2(2a + (n-1)d)
+    // The hash map keys have n = 100, a = 1, d = 1, S = 5050
+    // The hash map values have n = 100, a = 2, d = 2, S = 10100
+
+    struct HashMapIterator iter = hash_map_iterator_create(&hash_map);
+    int32_t key_sum = 0;
+    int32_t value_sum = 0;
+    int32_t iteration_count = 0;
+
+    do {
+        key_sum += *static_cast<int32_t*>(iter.current_key);
+        value_sum += *static_cast<int32_t*>(iter.current_value);
+        iteration_count += 1;
+    } while (hash_map_iterator_move_next(&iter));
+
+    ASSERT_EQ(5050, key_sum);
+    ASSERT_EQ(10100, value_sum);
+    ASSERT_EQ(100, iteration_count);
+}
