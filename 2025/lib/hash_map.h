@@ -5,12 +5,10 @@
 #ifndef AOC2025_LIB_HASH_MAP_H
 #define AOC2025_LIB_HASH_MAP_H
 
+#include "lib/hash_fns.h"
 #include "lib/vector.h"
 
 #include <stdint.h>
-
-typedef size_t (*HashFn)(const void*);
-typedef bool (*EqualFn)(const void*, const void*);
 
 struct HashMapEntry {
     void* key;
@@ -44,19 +42,18 @@ struct HashMap hash_map_create(size_t key_size, size_t value_size, HashFn hash_f
 
 bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out_value);
 
+bool hash_map_contains_key(const struct HashMap* hash_map, const void* key);
+
 bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* value);
 
 void hash_map_ensure_capacity(struct HashMap* hash_map, size_t capacity);
+
+size_t hash_map_size(const struct HashMap* hash_map);
 
 void hash_map_free(struct HashMap* hash_map);
 
 struct HashMapIterator hash_map_iterator_create(const struct HashMap* hash_map);
 
 bool hash_map_iterator_move_next(struct HashMapIterator* iter);
-
-/** Hash / equality helpers **/
-
-size_t hash_int32(const void* value);
-bool equal_int32(const void* value1, const void* value2);
 
 #endif // AOC2025_LIB_HASH_MAP_H

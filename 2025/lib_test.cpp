@@ -1,14 +1,17 @@
 extern "C" {
+#include "lib/hash_fns.h"
 #include "lib/hash_map.h"
+#include "lib/hash_set.h"
 #include "lib/string_split.h"
 #include "lib/string_view.h"
 }
 
+#include "gtest/gtest.h"
+
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
-
-#include "gtest/gtest.h"
 
 namespace {
 
@@ -128,4 +131,43 @@ TEST(HashMap, IteratorIterates) {
     ASSERT_EQ(5050, key_sum);
     ASSERT_EQ(10100, value_sum);
     ASSERT_EQ(100, iteration_count);
+
+    hash_map_free(&hash_map);
+}
+
+TEST(HashMap, ContainsKey) {
+    struct HashMap hash_map =
+        hash_map_create(sizeof(int32_t), sizeof(int32_t), hash_int32, equal_int32);
+
+    for (int32_t i = 0; i < 5; i++) {
+        const int32_t key = i;
+        hash_map_try_add(&hash_map, &key, &key);
+    }
+
+    static constexpr std::array keys = {0, 1, 2, 3, 4, 5};
+
+    ASSERT_TRUE(hash_map_contains_key(&hash_map, &keys.at(0)));
+    ASSERT_TRUE(hash_map_contains_key(&hash_map, &keys.at(1)));
+    ASSERT_TRUE(hash_map_contains_key(&hash_map, &keys.at(2)));
+    ASSERT_TRUE(hash_map_contains_key(&hash_map, &keys.at(3)));
+    ASSERT_TRUE(hash_map_contains_key(&hash_map, &keys.at(4)));
+    ASSERT_FALSE(hash_map_contains_key(&hash_map, &keys.at(5)));
+
+    hash_map_free(&hash_map);
+}
+
+TEST(HashSet, AddValues) {
+    struct HashSet hash_set = hash_set_create(sizeof(int32_t), hash_int32, equal_int32);
+
+    for (int32_t i = 0; i < 100; i++) {
+        ASSERT_TRUE(hash_set_try_add(&hash_set, &i));
+    }
+
+    for (int32_t i = 0; i < 100; i++) {
+        ASSERT_TRUE(hash_set_contains(&hash_set, &i));
+    }
+
+    ASSERT_EQ(100, hash_set_size(&hash_set));
+
+    hash_set_free(&hash_set);
 }

@@ -5,6 +5,7 @@
 
 #include "lib/debug.h"
 #include "lib/fatal_error.h"
+#include "lib/hash_fns.h"
 #include "lib/vector.h"
 
 #include <inttypes.h>
@@ -65,6 +66,29 @@ static struct HashMapEntry hash_map_create_new_entry(const struct HashMap* hash_
 }
 
 /**
+ * Get the pointer to entry corresponding to a key.
+ * @param hash_map The hash map to search.
+ * @param key The key to search for.
+ * @return A pointer to the entry corresponding to the key, or nullptr if not found.
+ */
+static const struct HashMapEntry* hash_map_get_entry_ptr(const struct HashMap* hash_map,
+                                                         const void* key) {
+    const struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
+    if (bucket->entries == nullptr) {
+        return nullptr;
+    }
+
+    for (size_t i = 0; i < vector_size(bucket->entries); i++) {
+        const struct HashMapEntry* entry = vector_at(bucket->entries, i);
+        if (hash_map->equal_fn(key, entry->key)) {
+            return entry;
+        }
+    }
+
+    return nullptr;
+}
+
+/**
  * Creates a new hash map.
  * @param key_size The size of the key type.
  * @param value_size The size of the value type.
@@ -104,21 +128,23 @@ struct HashMap hash_map_create(const size_t key_size, const size_t value_size, c
  * @return A boolean indicating whether the value was found.
  */
 bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out_value) {
-    const struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
-    if (bucket->entries == nullptr) {
-        return false;
-    }
-
-    for (size_t i = 0; i < vector_size(bucket->entries); i++) {
-        const struct HashMapEntry* entry = vector_at(bucket->entries, i);
-        if (hash_map->equal_fn(key, entry->key)) {
-            // DEBUG_PRINT("Found value in hash map");
-            memcpy(out_value, entry->value, hash_map->value_size);
-            return true;
-        }
+    const struct HashMapEntry* entry = hash_map_get_entry_ptr(hash_map, key);
+    if (entry != nullptr) {
+        memcpy(out_value, entry->value, hash_map->value_size);
+        return true;
     }
 
     return false;
+}
+
+/**
+ * Checks whether a key exists in the hash map.
+ * @param hash_map The hash map to search.
+ * @param key The key to search for.
+ * @return True if the key has been added to the hash map (with any value), false otherwise.
+ */
+bool hash_map_contains_key(const struct HashMap* hash_map, const void* key) {
+    return hash_map_get_entry_ptr(hash_map, key) != nullptr;
 }
 
 /**
@@ -225,6 +251,13 @@ void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
 }
 
 /**
+ * Gets the number of entries in the provided hash map.
+ * @param hash_map The hash map to get the size of.
+ * @return The number of entries in the hash map.
+ */
+size_t hash_map_size(const struct HashMap* hash_map) { return hash_map->total_values_count; }
+
+/**
  * Frees a hash map. The provided map must not be used after calling this function.
  * @param hash_map The hash map to free.
  */
@@ -240,6 +273,7 @@ void hash_map_free(struct HashMap* hash_map) {
  * @return An iterator, whose value field can be used to access a value in the hash map.
  * @note The order that entries in the map are yielded in is effectively random as it is based on
  * their hash and the size of the bucket array.
+ * @note It is illegal to call this function with an empty hash map.
  */
 struct HashMapIterator hash_map_iterator_create(const struct HashMap* hash_map) {
     for (size_t bucket_idx = 0; bucket_idx < hash_map->buckets_len; bucket_idx++) {
@@ -256,9 +290,19 @@ struct HashMapIterator hash_map_iterator_create(const struct HashMap* hash_map) 
         }
     }
 
+    // We need to give an iterator with a valid current_key and current_entry, to match behaviour
+    // with the StringSplitIterators that instantly are valid and are used with do/while loops.
+    // Unfortunately we can't do that if there are no entries as we can't get a current_key or
+    // current_value pointer.
     FATAL_ERROR("Attempted to create iterator over empty hash map");
 }
 
+/**
+ * Advances the iterator to the next value in the hash map.
+ * @param iter The iterator to advance.
+ * @return True if the iterator was advanced to a valid next value, false if there are no more
+ * values to iterate over.
+ */
 bool hash_map_iterator_move_next(struct HashMapIterator* iter) {
     const struct HashMapBucket* current_bucket = &iter->hash_map->buckets[iter->bucket_idx];
 
@@ -289,12 +333,4 @@ bool hash_map_iterator_move_next(struct HashMapIterator* iter) {
     }
 
     return false;
-}
-
-size_t hash_int32(const void* value) {
-    // Negative numbers will be reinterpreted as very large numbers
-    return *(int32_t*)value;
-}
-bool equal_int32(const void* value1, const void* value2) {
-    return *(int32_t*)value1 == *(int32_t*)value2;
 }
