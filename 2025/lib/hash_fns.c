@@ -14,3 +14,8 @@ size_t hash_int32(const void* value) {
 bool equal_int32(const void* value1, const void* value2) {
     return *(int32_t*)value1 == *(int32_t*)value2;
 }
+
+size_t hash_ptrdiff_t(const void* value) { return *(ptrdiff_t*)value; }
+bool equal_ptrdiff_t(const void* value1, const void* value2) {
+    return *(ptrdiff_t*)value1 == *(ptrdiff_t*)value2;
+}

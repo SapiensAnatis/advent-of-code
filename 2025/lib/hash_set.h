@@ -33,6 +33,8 @@ void hash_set_ensure_capacity(struct HashSet* hash_set, size_t capacity);
 
 size_t hash_set_size(const struct HashSet* hash_set);
 
+bool hash_set_try_remove(struct HashSet* hash_set, const void* value);
+
 void hash_set_free(struct HashSet* hash_set);
 
 struct HashSetIterator hash_set_iterator_create(const struct HashSet* hash_set);

@@ -66,6 +66,16 @@ void hash_set_ensure_capacity(struct HashSet* hash_set, const size_t capacity) {
 size_t hash_set_size(const struct HashSet* hash_set) { return hash_map_size(&hash_set->hash_map); }
 
 /**
+ * Removes an element from a hash set.
+ * @param hash_set The hash set to remove from.
+ * @param value The value to remove.
+ * @return True if the value was found and removed, otherwise false.
+ */
+bool hash_set_try_remove(struct HashSet* hash_set, const void* value) {
+    return hash_map_try_remove(&hash_set->hash_map, value);
+}
+
+/**
  * Frees a hash set. The provided set must not be used after calling this function.
  * @param hash_set The hash set to free.
  */
@@ -90,7 +100,7 @@ struct HashSetIterator hash_set_iterator_create(const struct HashSet* hash_set) 
     return (struct HashSetIterator){
         .hash_map = &hash_set->hash_map,
         .hash_map_iterator = hash_map_iterator,
-        .current_value = hash_map_iterator.current_value,
+        .current_value = hash_map_iterator.current_key,
     };
 }
 
@@ -105,6 +115,6 @@ bool hash_set_iterator_move_next(struct HashSetIterator* iter) {
         return false;
     }
 
-    iter->current_value = iter->hash_map_iterator.current_value;
+    iter->current_value = iter->hash_map_iterator.current_key;
     return true;
 }

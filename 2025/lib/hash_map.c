@@ -60,7 +60,13 @@ static struct HashMapEntry hash_map_create_new_entry(const struct HashMap* hash_
     }
 
     memcpy(new_entry.key, key, hash_map->key_size);
-    memcpy(new_entry.value, value, hash_map->value_size);
+
+    if (value != nullptr) {
+        memcpy(new_entry.value, value, hash_map->value_size);
+    } else {
+        // Adding a default entry
+        memset(new_entry.value, 0, hash_map->value_size);
+    }
 
     return new_entry;
 }
@@ -86,6 +92,22 @@ static const struct HashMapEntry* hash_map_get_entry_ptr(const struct HashMap* h
     }
 
     return nullptr;
+}
+
+static void hash_map_resize_if_needed(struct HashMap* hash_map) {
+    const double current_load =
+        (double)hash_map->total_values_count / (double)hash_map->buckets_len;
+
+    if (current_load > RESIZE_LOAD_FACTOR) {
+        DEBUG_PRINT("Resizing hash map due to exceeded load factor: current = %.3f (%zu entries / "
+                    "%zu buckets)",
+                    current_load, hash_map->total_values_count, hash_map->buckets_len);
+
+        const size_t new_buckets_len = hash_map->buckets_len * 2;
+        DEBUG_PRINT("New size: %zu buckets", new_buckets_len);
+
+        hash_map_ensure_capacity(hash_map, new_buckets_len);
+    }
 }
 
 /**
@@ -138,6 +160,59 @@ bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out
 }
 
 /**
+ *
+ * @param hash_map The hash map to search in.
+ * @param key The key to get the value pointer for.
+ * @return A pointer to the value, or nullptr if the value was not found.
+ */
+void* hash_map_get_value_ptr(struct HashMap* hash_map, const void* key) {
+    // We could have just added hash_map_get_entry_ptr to the header, but I didn't want to expose
+    // HashMapEntry structs as that would allow modifications of keys which would be bad
+    const struct HashMapEntry* entry = hash_map_get_entry_ptr(hash_map, key);
+    if (entry != nullptr) {
+        return entry->value;
+    }
+
+    return nullptr;
+}
+
+/**
+ * Gets a pointer to a value, or if it is not in the hash map, adds a default value and returns
+ * a pointer to that.
+ * @param hash_map The hash map to search.
+ * @param key The key to search for.
+ * @return A pointer to a valuue.
+ * @note The default value is constructed by zeroing out memory of size value_size.
+ */
+void* hash_map_get_value_ptr_or_add_default(struct HashMap* hash_map, const void* key) {
+    // Get bucket, not entry, to avoid rehashing
+    struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
+
+    if (bucket->entries != nullptr) {
+        for (size_t i = 0; i < vector_size(bucket->entries); i++) {
+            const struct HashMapEntry* entry = vector_at(bucket->entries, i);
+            if (hash_map->equal_fn(key, entry->key)) {
+                return entry->value;
+            }
+        }
+    }
+
+    if (bucket->entries == nullptr) {
+        bucket->entries = vector_create(sizeof(struct HashMapEntry), hash_map_entry_free);
+    }
+
+    const struct HashMapEntry new_entry = hash_map_create_new_entry(hash_map, key, nullptr);
+
+    vector_append(bucket->entries, &new_entry);
+
+    hash_map->total_values_count += 1;
+    hash_map_resize_if_needed(hash_map);
+
+    // Valid because vector_append does a shallow copy so the pointer is the same
+    return new_entry.value;
+}
+
+/**
  * Checks whether a key exists in the hash map.
  * @param hash_map The hash map to search.
  * @param key The key to search for.
@@ -177,20 +252,7 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
     hash_map->total_values_count += 1;
 
     // Only bother doing the resize routine after writing
-
-    const double current_load =
-        (double)hash_map->total_values_count / (double)hash_map->buckets_len;
-
-    if (current_load > RESIZE_LOAD_FACTOR) {
-        DEBUG_PRINT("Resizing hash map due to exceeded load factor: current = %.3f (%zu entries / "
-                    "%zu buckets)",
-                    current_load, hash_map->total_values_count, hash_map->buckets_len);
-
-        const size_t new_buckets_len = hash_map->buckets_len * 2;
-        DEBUG_PRINT("New size: %zu buckets", new_buckets_len);
-
-        hash_map_ensure_capacity(hash_map, new_buckets_len);
-    }
+    hash_map_resize_if_needed(hash_map);
 
     return true;
 }
@@ -256,6 +318,28 @@ void hash_map_ensure_capacity(struct HashMap* hash_map, const size_t capacity) {
  * @return The number of entries in the hash map.
  */
 size_t hash_map_size(const struct HashMap* hash_map) { return hash_map->total_values_count; }
+
+/**
+ * Remove an element from the hash map.
+ * @param hash_map The hash map to remove an item from.
+ * @param key The key of the entry to be removed.
+ * @return True if the item was found and removed, otherwise false.
+ */
+bool hash_map_try_remove(struct HashMap* hash_map, const void* key) {
+    struct HashMapBucket* bucket = hash_map_get_bucket(hash_map, key);
+
+    if (bucket->entries != nullptr && vector_size(bucket->entries) != 0) {
+        for (size_t i = 0; i < vector_size(bucket->entries); i++) {
+            const struct HashMapEntry* entry = vector_at(bucket->entries, i);
+            if (hash_map->equal_fn(key, entry->key)) {
+                vector_remove_at(bucket->entries, i);
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 /**
  * Frees a hash map. The provided map must not be used after calling this function.

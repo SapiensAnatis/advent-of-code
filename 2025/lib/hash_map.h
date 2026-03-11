@@ -42,6 +42,10 @@ struct HashMap hash_map_create(size_t key_size, size_t value_size, HashFn hash_f
 
 bool hash_map_try_get(const struct HashMap* hash_map, const void* key, void* out_value);
 
+void* hash_map_get_value_ptr(struct HashMap* hash_map, const void* key);
+
+void* hash_map_get_value_ptr_or_add_default(struct HashMap* hash_map, const void* key);
+
 bool hash_map_contains_key(const struct HashMap* hash_map, const void* key);
 
 bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* value);
@@ -49,6 +53,8 @@ bool hash_map_try_add(struct HashMap* hash_map, const void* key, const void* val
 void hash_map_ensure_capacity(struct HashMap* hash_map, size_t capacity);
 
 size_t hash_map_size(const struct HashMap* hash_map);
+
+bool hash_map_try_remove(struct HashMap* hash_map, const void* key);
 
 void hash_map_free(struct HashMap* hash_map);
 
