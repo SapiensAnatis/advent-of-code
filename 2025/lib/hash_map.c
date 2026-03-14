@@ -121,8 +121,8 @@ static void hash_map_resize_if_needed(struct HashMap* hash_map) {
 struct HashMap hash_map_create(const size_t key_size, const size_t value_size, const HashFn hash_fn,
                                const EqualFn equal_fn) {
 
-    // n.b. MUST use calloc, as hash_map_free will access each bucket and try to free the
-    // owned vector, if uninitialised buckets are not zeroed then that is UB.
+    // n.b. MUST use calloc, as we often access new buckets and check if the vector is a nullptr,
+    // for lazy creation, but this is UB if we do not zero the bucket array
     struct HashMapBucket* hash_map_buckets =
         calloc(INITIAL_BUCKETS_SIZE, sizeof(struct HashMapBucket));
     if (hash_map_buckets == nullptr) {
@@ -181,7 +181,7 @@ void* hash_map_get_value_ptr(struct HashMap* hash_map, const void* key) {
  * a pointer to that.
  * @param hash_map The hash map to search.
  * @param key The key to search for.
- * @return A pointer to a valuue.
+ * @return A pointer to a value.
  * @note The default value is constructed by zeroing out memory of size value_size.
  */
 void* hash_map_get_value_ptr_or_add_default(struct HashMap* hash_map, const void* key) {

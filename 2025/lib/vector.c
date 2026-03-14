@@ -133,8 +133,7 @@ void* vector_back(struct Vector* vector) { return vector_at(vector, vector->size
 
 void vector_remove_at(struct Vector* vector, const size_t index) {
     if (index >= vector->size) {
-        assert(false && "out of bounds access to vector");
-        abort();
+        FATAL_ERROR("out of bounds access to vector");
     }
 
     const size_t num_elements_to_move = vector->size - index - 1;
@@ -149,6 +148,10 @@ void vector_remove_at(struct Vector* vector, const size_t index) {
     }
 
     vector->size -= 1;
+}
+
+void vector_sort(struct Vector* vector, int (*comparer)(const void*, const void*)) {
+    qsort(vector->data, vector->size, vector->element_size, comparer);
 }
 
 void vector_free(struct Vector* vector) {

@@ -21,4 +21,6 @@ bool string_view_try_parse_int32(const struct StringView* view, int32_t* out_res
 
 bool string_view_try_parse_int64(const struct StringView* view, int64_t* out_result);
 
+bool string_view_try_parse_uint32(const struct StringView* view, uint32_t* out_result);
+
 #endif // AOC2025_STRING_VIEW_H

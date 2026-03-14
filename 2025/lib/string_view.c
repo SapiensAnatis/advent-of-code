@@ -3,7 +3,6 @@
 #include "debug.h"
 
 #include <assert.h>
-#include <ctype.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -75,14 +74,22 @@ bool string_view_try_parse_int32(const struct StringView* view, int32_t* out_res
  * @return A boolean indicating whether the parsing succeeded or not.
  */
 bool string_view_try_parse_int64(const struct StringView* view, int64_t* out_result) {
-    long result = 0;
+    int64_t result = 0;
 
     for (size_t i = 0; i < view->length; i++) {
+        if (result > INT64_MAX / 10) {
+            return false;
+        }
+
         result *= 10;
 
         const char ch = view->data[i];
-        if (isdigit(ch)) {
+        if (ch >= '0' && ch <= '9') {
             const int digit = ch - '0';
+            if (result > INT64_MAX - digit) {
+                return false;
+            }
+
             result += digit;
         } else {
             DEBUG_PRINT("Found non-digit character: %c", ch);
@@ -92,4 +99,21 @@ bool string_view_try_parse_int64(const struct StringView* view, int64_t* out_res
 
     *out_result = result;
     return true;
+}
+
+/**
+ * Tries to parse a StringView to an uint64_t.
+ * @param view The input view.
+ * @param out_result Pointer to result. Will not be written to if this returns false.
+ * @return A boolean indicating whether the parsing succeeded or not.
+ */
+bool string_view_try_parse_uint32(const struct StringView* view, uint32_t* out_result) {
+    int64_t tmp_result = 0;
+    const bool result = string_view_try_parse_int64(view, &tmp_result);
+    if (result && tmp_result <= UINT32_MAX && tmp_result >= 0) {
+        *out_result = (uint32_t)tmp_result;
+        return true;
+    }
+
+    return false;
 }

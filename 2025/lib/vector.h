@@ -28,6 +28,8 @@ void* vector_back(struct Vector* vector);
 
 void vector_remove_at(struct Vector* vector, size_t index);
 
+void vector_sort(struct Vector* vector, int (*comparer)(const void*, const void*));
+
 void vector_free(struct Vector* vector);
 
 #endif // AOC2025_LIB_VECTOR_H
